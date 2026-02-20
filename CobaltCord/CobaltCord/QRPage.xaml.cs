@@ -65,9 +65,9 @@ namespace CobaltCord
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => dscQRUrl.Text = text);
         }
 
-        public void ContinueToFinished()
+        public async Task ContinueToFinished()
         {
-            Frame.Navigate(typeof(FinishedPage));
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => { Frame.Navigate(typeof(FinishedPage)); });
         }
     }
 
@@ -236,7 +236,7 @@ namespace CobaltCord
             SettingsMgr.DiscordTkn = decTkn;
 
             var page = _context as QRPage;
-            if (page != null) { page.ContinueToFinished(); }
+            if (page != null) { await page.ContinueToFinished(); }
         }
 
 

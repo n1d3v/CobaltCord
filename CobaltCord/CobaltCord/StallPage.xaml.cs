@@ -3,6 +3,7 @@ using Windows.UI.Xaml.Navigation;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using CobaltCord.Classes;
+using System.Diagnostics;
 
 namespace CobaltCord
 {
@@ -10,10 +11,19 @@ namespace CobaltCord
     {
         public IDictionary<string, object> DefaultViewModel { get; } = new Dictionary<string, object>();
 
+        private WelcomePage _welcomePage;
+        private LoginPage _loginPage;
+        private FinishedPage _finishedPage;
+
         public StallPage()
         {
             this.InitializeComponent();
             DefaultViewModel["Item"] = new object();
+
+            // Preload the pages beforehand so we can have smooth transitions.
+            _welcomePage = new WelcomePage();
+            _loginPage = new LoginPage();
+            _finishedPage = new FinishedPage();
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
