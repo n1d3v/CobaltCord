@@ -1,0 +1,58 @@
+﻿<Page
+    x:Class="CobaltCord.WelcomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CobaltCord"
+    xmlns:data="using:CobaltCord.Data"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    DataContext="{Binding DefaultViewModel.Item, RelativeSource={RelativeSource Self}}"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Page.Transitions>
+        <TransitionCollection>
+            <NavigationThemeTransition>
+                <NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                    <ContinuumNavigationTransitionInfo />
+                </NavigationThemeTransition.DefaultNavigationTransitionInfo>
+            </NavigationThemeTransition>
+        </TransitionCollection>
+    </Page.Transitions>
+
+    <Grid x:Name="LayoutRoot">
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <PaneThemeTransition />
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel x:Name="TitlePanel" Grid.Row="0" Margin="15,17,0,28">
+            <TextBlock Text="CobaltCord" Margin="9,17,0,0" Style="{StaticResource ResourceKey=TitleTextBlockStyle}"  />
+            <TextBlock Text="welcome!" Margin="9,-7,0,-12" Style="{StaticResource HeaderTextBlockStyle}"/>
+        </StackPanel>
+
+        <Grid x:Name="ContentPanel" Grid.Row="1" Margin="26,0">
+            <!-- Welcome the user and give them a notice about Discord banning accounts. -->
+            <TextBlock TextWrapping="Wrap" FontSize="16" Style="{StaticResource BaseTextBlockStyle}">
+                Welcome to CobaltCord! We'll get you logged in and your settings ready here in this setup guide.
+                Before we start, please do know that this is a 3rd-party client and it may get you 
+                <Run Text="banned" FontWeight="Bold" Foreground="#FFFF4A4A"/>
+                off of Discord. We are not responsible if this does happen to you, and we also try to mitigate this risk as much as we can.
+            </TextBlock>
+        </Grid>
+
+        <Grid Grid.Row="2" VerticalAlignment="Bottom" Margin="0,0,0,7.5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" HorizontalAlignment="Stretch" Margin="25,0,10,0" Content="go back" IsEnabled="False" />
+            <Button x:Name="nextButton" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,0,25,0" Content="next page" Click="nextButton_Click" />
+        </Grid>
+    </Grid>
+</Page>
