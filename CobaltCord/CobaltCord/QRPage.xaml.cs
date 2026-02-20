@@ -1,7 +1,6 @@
 ﻿using System;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Media.Imaging;
 using System.Diagnostics;
 using WebSocketStreamer;
@@ -15,6 +14,7 @@ using Windows.Storage.Streams;
 using Windows.Web.Http;
 using CobaltCord.Networking;
 using CobaltCord.Classes;
+using System.Collections.Generic;
 using System.Text;
 
 namespace CobaltCord
@@ -22,10 +22,12 @@ namespace CobaltCord
     public sealed partial class QRPage : Page
     {
         private AuthSocket authSocket;
+        public IDictionary<string, object> DefaultViewModel { get; } = new Dictionary<string, object>();
 
         public QRPage()
         {
             this.InitializeComponent();
+            DefaultViewModel["Item"] = new object();
             this.Loaded += QRPage_Loaded;
             authSocket = new AuthSocket(this, this.Dispatcher);
         }
@@ -35,16 +37,21 @@ namespace CobaltCord
             await authSocket.StartSocket();
         }
 
+        private void backButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(LoginPage));
+        }
+
         public async Task ShowQRCode(string content)
         {
             try
             {
                 BitmapImage qrBitmap = await authSocket.GenerateQRCode(content);
 
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
                 {
                     dscQR.Source = qrBitmap;
-                    UpdateQRText(string.Empty);
+                    await UpdateQRText(string.Empty);
                 });
             }
             catch (Exception ex)
@@ -58,9 +65,9 @@ namespace CobaltCord
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => dscQRUrl.Text = text);
         }
 
-        public void ContinueToAppearance()
+        public void ContinueToFinished()
         {
-            // Frame.Navigate(typeof());
+            Frame.Navigate(typeof(FinishedPage));
         }
     }
 
@@ -227,6 +234,9 @@ namespace CobaltCord
             string decTkn = DecryptRSA(discordEncTkn);
 
             SettingsMgr.DiscordTkn = decTkn;
+
+            var page = _context as QRPage;
+            if (page != null) { page.ContinueToFinished(); }
         }
 
 

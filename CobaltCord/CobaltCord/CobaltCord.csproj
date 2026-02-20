@@ -88,6 +88,9 @@
     <Compile Include="Common\ObservableDictionary.cs" />
     <Compile Include="Common\RelayCommand.cs" />
     <Compile Include="Common\SuspensionManager.cs" />
+    <Compile Include="FinishedPage.xaml.cs">
+      <DependentUpon>FinishedPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="LoginPage.xaml.cs">
       <DependentUpon>LoginPage.xaml</DependentUpon>
     </Compile>
@@ -116,6 +119,7 @@
     <Content Include="Assets\StoreLogo.scale-240.png" />
     <Content Include="Assets\WideLogo.scale-240.png" />
     <Content Include="Images\CobaltCordLogo.png" />
+    <Content Include="Images\Setup\cc-phone-preview.png" />
     <Content Include="Images\Setup\qr-placeholder.png" />
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +134,10 @@
     </PRIResource>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="FinishedPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="LoginPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

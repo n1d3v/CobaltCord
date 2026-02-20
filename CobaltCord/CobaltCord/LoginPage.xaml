@@ -42,7 +42,7 @@
                 <StackPanel>
                     <TextBlock Text="Enter your Discord token (~72 characters)" Opacity="0.5" FontSize="16" Style="{StaticResource BaseTextBlockStyle}" />
                     <Grid>
-                        <PasswordBox x:Name="passwordBox" Padding="10,5" BorderThickness="2" BorderBrush="White">
+                        <PasswordBox x:Name="passwordBox" Padding="10,5" BorderThickness="2" BorderBrush="White" PasswordChanged="passwordBox_PasswordChanged">
                             <PasswordBox.Resources>
                                 <SolidColorBrush x:Key="TextControlBackground" Color="White"/>
                                 <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="White"/>
@@ -60,8 +60,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" HorizontalAlignment="Stretch" Margin="5,0" Content="go back" />
-            <Button Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0" Content="next page" IsEnabled="False" />
+            <Button x:Name="backButton" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5,0" Content="go back" Click="backButton_Click" />
+            <Button x:Name="nextButton" Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0" Content="next page" IsEnabled="False" Click="nextButton_Click" />
             <Button x:Name="qrButton" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5,0" Content="scan qr" Click="qrButton_Click" />
         </Grid>
     </Grid>
