@@ -33,7 +33,7 @@ namespace CobaltCord
             await Task.Delay(1500);
             if (SettingsMgr.FinishedWelcome)
             {
-                // Travels to the main client in the future
+                Frame.Navigate(typeof(ClientPage));
             }
             else
             {

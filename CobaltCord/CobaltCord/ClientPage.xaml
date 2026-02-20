@@ -1,0 +1,48 @@
+﻿<Page
+    x:Class="CobaltCord.ClientPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CobaltCord"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Page.Transitions>
+        <TransitionCollection>
+            <NavigationThemeTransition>
+                <NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                    <ContinuumNavigationTransitionInfo />
+                </NavigationThemeTransition.DefaultNavigationTransitionInfo>
+            </NavigationThemeTransition>
+        </TransitionCollection>
+    </Page.Transitions>
+
+    <Grid>
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <PaneThemeTransition />
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        
+        <Grid Grid.Row="0" x:Name="PseudoCommandBar" VerticalAlignment="Bottom" Height="65" Background="{ThemeResource AppBarBackgroundThemeBrush}" Margin="0,0,0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" x:Name="UserInformation" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0,0,0">
+                <Image x:Name="UserAvatar" Source="Images/Client/user-pfp.png" Width="50" />
+                <StackPanel VerticalAlignment="Center" Margin="10,0,0,0">
+                    <TextBlock x:Name="usernameText" Text="Loading your data..." Style="{StaticResource BaseTextBlockStyle}" />
+                    <TextBlock x:Name="statusText" Text="Please be patient!" FontSize="14" Style="{StaticResource BaseTextBlockStyle}" Opacity="0.65" />
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Column="1" x:Name="CBarButtons" Orientation="Horizontal" HorizontalAlignment="Right">
+                <AppBarButton x:Name="notificationsButton" Icon="Mail" Margin="0,0,-20,0" />
+                <AppBarButton x:Name="settingsButton" Icon="Setting" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>

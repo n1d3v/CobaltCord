@@ -239,7 +239,6 @@ namespace CobaltCord
             if (page != null) { await page.ContinueToFinished(); }
         }
 
-
         private void HandleMessage(string data)
         {
             try

@@ -26,7 +26,7 @@ namespace CobaltCord.Classes
         public string DCReferringCurrent { get; set; } = "https://discord.com/";
         public string DCReferringCurrentDomain { get; set; } = "discord.com";
         public string DCReleaseChannel { get; set; } = "canary";
-        public int DCClientBuild { get; set; } = 494673; // Latest build as of 7/2/26
+        public int DCClientBuild { get; set; } = 499123; // Latest build as of 20/2/26 (Almost at 500000 builds!)
         public string DCClientEvtSrc { get; set; } = null;
         public string DCClientState { get; set; } = "unfocused";
 

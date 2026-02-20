@@ -1,6 +1,5 @@
 ﻿using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Navigation;
 using CobaltCord.Classes;
 
 namespace CobaltCord
@@ -12,14 +11,10 @@ namespace CobaltCord
             this.InitializeComponent();
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
-            SettingsMgr.FinishedWelcome = true;
-        }
-
         private void finishButton_Click(object sender, RoutedEventArgs e)
         {
-            // Travels to the main client in the future
+            SettingsMgr.FinishedWelcome = true;
+            Frame.Navigate(typeof(ClientPage));
         }
 
         private void backButton_Click(object sender, RoutedEventArgs e)
@@ -27,4 +22,4 @@ namespace CobaltCord
             Frame.Navigate(typeof(LoginPage));
         }
     }
-}
+}   

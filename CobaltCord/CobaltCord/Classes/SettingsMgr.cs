@@ -38,6 +38,12 @@ namespace CobaltCord.Classes
             set { SetString("discordTkn", value); }
         }
 
+        public static string DiscordUID
+        {
+            get { return GetString("discordUID"); }
+            set { SetString("discordUID", value); }
+        }
+
         public static bool FinishedWelcome
         {
             get { return GetBool("finishedWel"); }
