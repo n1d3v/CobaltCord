@@ -71,12 +71,7 @@ namespace CobaltCord
             await SetImageFromUrl(UserAvatar, avatarUrl);
 
             // Gets the main users custom status to use at the bottom of the PseudoCommandBar.
-            while (!_webSocket._canCheckData)
-            {
-                // Looking to replace this in the future with an event handler.
-                await Task.Delay(100);
-            }
-
+            await WaitForReadyEvt(); // Uses an event in WebSocket to know when exactly to check for data.
             string custStatus = UserStatusMgr.UserStatusStore.GetCustomStatus("0") ?? "Add a custom status...";
 
             usernameText.Text = displayName;
@@ -115,6 +110,22 @@ namespace CobaltCord
             {
                 Debug.WriteLine($"Failed to load image: {ex.Message}");
             }
+        }
+
+        private async Task WaitForReadyEvt()
+        {
+            var tcs = new TaskCompletionSource<bool>();
+
+            EventHandler handler = null;
+            handler = (s, e) =>
+            {
+                _webSocket.ReadyReceived -= handler;
+                tcs.TrySetResult(true);
+            };
+
+            _webSocket.ReadyReceived += handler;
+
+            await tcs.Task;
         }
 
         public string GetAvatarUrl(string Id, string Hash, bool isServer, bool isGC)

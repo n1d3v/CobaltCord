@@ -21,8 +21,10 @@ namespace CobaltCord.Networking
 
         // WebSocket properties
         private bool _isConnected = false;
-        public bool _canCheckData = false;
         private int heartbeatInterval;
+
+        // WebSocket events
+        public event EventHandler ReadyReceived;
 
         public WebSocket()
         {
@@ -129,7 +131,7 @@ namespace CobaltCord.Networking
                                 // Debug.WriteLine(json["d"] != null ? wsJsonEvt : "null");
 
                                 await HandleReadyEvt(wsJsonEvt);
-                                _canCheckData = true;
+                                ReadyReceived?.Invoke(this, EventArgs.Empty);
                                 break;
                             default:
                                 Debug.WriteLine($"[WS] Unhandled event: {eventType}, data: {json["d"]?.ToString(Formatting.None)}");
