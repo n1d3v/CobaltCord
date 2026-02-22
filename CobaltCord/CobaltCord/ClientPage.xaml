@@ -30,6 +30,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <Image x:Name="DoNotUnhideThisImage" Visibility="Collapsed" />
         <Image Grid.Row="0" Source="Images/CobaltCordWM.png" Width="135" Margin="19,14.5,0,-15" HorizontalAlignment="Left" />
         <Pivot Grid.Row="1" x:Name="MainPivot">
             <PivotItem x:Uid="dmItem" Margin="19,0,0,0" Header="messages">

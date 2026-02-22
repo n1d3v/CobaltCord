@@ -142,11 +142,16 @@ namespace CobaltCord
                 };
             }
 
+            int currentDMCount = 0;
             var dscChannels = _webSocket.GetUserChannels(true);
+
+            int totalDMs = dscChannels.Count(c => (c["type"]?.Value<int>() ?? 0) == DM_CHANNEL_TYPE);
+            var dmItemsToAdd = new List<ListItem>();
 
             foreach (var channel in dscChannels)
             {
                 int type = channel["type"]?.Value<int>() ?? 0;
+
                 if (type == DM_CHANNEL_TYPE)
                 {
                     var recipients = channel["recipients"] as JArray;
@@ -161,11 +166,17 @@ namespace CobaltCord
 
                     string displayName = recipient["global_name"]?.Value<string>();
                     string dscUserName = recipient["username"]?.Value<string>();
+                    string dscAvatarHash = recipient["avatar"]?.Value<string>();
 
-                    DirectMessages.Add(new ListItem
+                    currentDMCount++;
+                    ShowProgressIndicator(true, $"Downloading profile pictures ({currentDMCount}/{totalDMs})");
+
+                    string avatarUrl = HelperMethods.GetAvatarUrl(userId, dscAvatarHash, false, false);
+                    await AvatarHelper.SetAvatarFromHash(DoNotUnhideThisImage, userId, dscAvatarHash, avatarUrl);
+
+                    dmItemsToAdd.Add(new ListItem
                     {
                         Name = displayName,
-                        // SecondaryText = userStatus,
                         CombinedId = combinedId
                     });
                 }
@@ -205,13 +216,18 @@ namespace CobaltCord
 
                     string combinedId = $"Group|{channelId}";
 
-                    DirectMessages.Add(new ListItem
+                    dmItemsToAdd.Add(new ListItem
                     {
                         Name = groupName,
-                        SecondaryText = $"{memberCount.ToString()} members in total",
+                        SecondaryText = $"{memberCount} members in total",
                         CombinedId = combinedId
                     });
                 }
+            }
+
+            foreach (var item in dmItemsToAdd)
+            {
+                DirectMessages.Add(item);
             }
         }
 
