@@ -43,6 +43,7 @@ namespace CobaltCord
         {
             this.InitializeComponent();
             this.DataContext = this;
+            this.NavigationCacheMode = Windows.UI.Xaml.Navigation.NavigationCacheMode.Required;
             dscToken = SettingsMgr.DiscordTkn;
             _webSocket = WebSocket.Instance;
 

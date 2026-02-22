@@ -27,6 +27,7 @@ namespace CobaltCord
         public QRPage()
         {
             this.InitializeComponent();
+            this.NavigationCacheMode = Windows.UI.Xaml.Navigation.NavigationCacheMode.Required;
             DefaultViewModel["Item"] = new object();
             this.Loaded += QRPage_Loaded;
             authSocket = new AuthSocket(this, this.Dispatcher);

@@ -18,6 +18,7 @@ namespace CobaltCord
         public LoginPage()
         {
             this.InitializeComponent();
+            this.NavigationCacheMode = Windows.UI.Xaml.Navigation.NavigationCacheMode.Required;
             DefaultViewModel["Item"] = new object();
         }
 
