@@ -12,7 +12,7 @@ namespace CobaltCord
     {
         public IDictionary<string, object> DefaultViewModel { get; } = new Dictionary<string, object>();
 
-        internal static readonly API api = new API();
+        internal static readonly API api = API.Instance;
         private string dscToken = null;
 
         public LoginPage()

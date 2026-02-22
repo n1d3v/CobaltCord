@@ -9,20 +9,22 @@ using CobaltCord.Classes;
 
 namespace CobaltCord.Networking
 {
-    internal class API
+    internal sealed class API
     {
-        // Re-used client (Less memory usage)
+        // This allows us to use one single API instance throughout the entire client
+        // Both reducing the RAM usage, and also reducing the risk of getting banned off of Discord if they catch on
+        // This is also present in the WebSocket system, which does the same thing.
+        private static readonly Lazy<API> _instance = new Lazy<API>(() => new API());
+        public static API Instance => _instance.Value;
+
+        // Re-used client (single instance)
         private static readonly HttpClient client = new HttpClient();
         private static readonly ConfigMgr dscMgr = new ConfigMgr();
 
-        // Configuration (Firefox 115 ESR on Windows 10)
-        private static readonly string XSuperProperties = null;
+        private static string XSuperProperties;
         private static readonly string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0";
 
-        static API()
-        {
-            XSuperProperties = dscMgr.GetXSPJson();
-        }
+        private API() { XSuperProperties = dscMgr.GetXSPJson(); }
 
         public async Task<string> SendAPI(string endpoint, HttpMethod httpMethod, string token = null, object data = null, byte[] fileData = null, string fileName = null, Dictionary<string, string> headers = null)
         {
@@ -44,10 +46,7 @@ namespace CobaltCord.Networking
 
             if (fileData != null && !string.IsNullOrEmpty(fileName))
             {
-                var content = new MultipartFormDataContent
-                {
-                    { new ByteArrayContent(fileData) { Headers = { { "Content-Type", "application/octet-stream" } } }, "file", fileName }
-                };
+                var content = new MultipartFormDataContent { { new ByteArrayContent(fileData) { Headers = { { "Content-Type", "application/octet-stream" } } }, "file", fileName } };
 
                 if (data != null)
                 {
@@ -63,8 +62,8 @@ namespace CobaltCord.Networking
                 request.Content = new StringContent(jsonData, Encoding.UTF8, "application/json");
             }
 
-            request.Headers.Add("User-Agent", UserAgent);
-            request.Headers.Add("X-Super-Properties", XSuperProperties);
+            request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
+            request.Headers.TryAddWithoutValidation("X-Super-Properties", XSuperProperties);
 
             try
             {
@@ -74,15 +73,13 @@ namespace CobaltCord.Networking
                 {
                     return await response.Content.ReadAsStringAsync();
                 }
-                else
-                {
-                    string errorResponse = await response.Content.ReadAsStringAsync();
-                    Debug.WriteLine($"[DEBUG] Request failed: {response.StatusCode} - {errorResponse}");
-                }
+
+                string errorResponse = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"[DEBUG] Request failed: {response.StatusCode} - {errorResponse}");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[DEBUG] An error occurred while sending the request: {ex.Message}");
+                Debug.WriteLine($"[DEBUG] Error sending request: {ex.Message}");
                 Debug.WriteLine($"[DEBUG] URL used: {url}");
             }
 

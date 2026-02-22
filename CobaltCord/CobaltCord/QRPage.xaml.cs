@@ -85,7 +85,7 @@ namespace CobaltCord
         private CoreDispatcher _dispatcher;
         private Page _context;
 
-        internal static readonly API api = new API();
+        internal static readonly API api = API.Instance;
 
         public AuthSocket(Page context, CoreDispatcher dispatcher)
         {

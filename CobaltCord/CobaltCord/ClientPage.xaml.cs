@@ -27,7 +27,7 @@ namespace CobaltCord
 {
     public sealed partial class ClientPage : Page
     {
-        internal static readonly API api = new API();
+        internal static readonly API api = API.Instance;
         private WebSocket _webSocket;
         private string dscToken;
 
@@ -44,7 +44,7 @@ namespace CobaltCord
             this.InitializeComponent();
             this.DataContext = this;
             dscToken = SettingsMgr.DiscordTkn;
-            _webSocket = new WebSocket();
+            _webSocket = WebSocket.Instance;
 
             // We'll use this as a way to use async.
             this.Loaded += ClientPage_Loaded;

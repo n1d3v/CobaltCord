@@ -17,7 +17,7 @@ namespace CobaltCord
     {
         private string channelId;
 
-        internal static readonly API api = new API();
+        internal static readonly API api = API.Instance;
         private WebSocket _webSocket;
         private string dscToken;
 

@@ -13,6 +13,10 @@ namespace CobaltCord.Networking
 {
     public class WebSocket
     {
+        // This allows us to use one single WebSocket instance throughout the entire client
+        private static readonly Lazy<WebSocket> _instance = new Lazy<WebSocket>(() => new WebSocket());
+        public static WebSocket Instance => _instance.Value;
+
         // WebSocketStreamer properties
         private WebSocketStreamerClient _client;
         private WebSocketStreamerSend _sender;
@@ -32,7 +36,7 @@ namespace CobaltCord.Networking
         public JArray recipientsData;
         public JArray privateChannelsData;
 
-        public WebSocket()
+        private WebSocket()
         {
             dscToken = SettingsMgr.DiscordTkn;
         }
@@ -137,7 +141,7 @@ namespace CobaltCord.Networking
                                 recipientsData = (JArray)(json["d"]["relationships"] ?? new JArray());
                                 privateChannelsData = (JArray)(json["d"]["private_channels"] ?? new JArray());
                                 // Only uncomment if you need to look at the READY event data as this is a large payload.
-                                Debug.WriteLine(json["d"] != null ? wsJsonEvt : "null");
+                                // Debug.WriteLine(json["d"] != null ? wsJsonEvt : "null");
 
                                 await HandleReadyEvt(wsJsonEvt);
                                 break;
