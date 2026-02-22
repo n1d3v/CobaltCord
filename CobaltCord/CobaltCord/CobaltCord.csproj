@@ -84,7 +84,12 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Classes\AvatarHelper.cs" />
     <Compile Include="Classes\ConfigMgr.cs" />
+    <Compile Include="Classes\HelperClasses.cs" />
+    <Compile Include="Classes\HelperMethods.cs" />
+    <Compile Include="Classes\ListMsgItem.cs" />
+    <Compile Include="Classes\MessageCache.cs" />
     <Compile Include="Classes\SettingsMgr.cs" />
     <Compile Include="Classes\UserStatusMgr.cs" />
     <Compile Include="ClientPage.xaml.cs">
@@ -94,6 +99,9 @@
     <Compile Include="Common\ObservableDictionary.cs" />
     <Compile Include="Common\RelayCommand.cs" />
     <Compile Include="Common\SuspensionManager.cs" />
+    <Compile Include="ConversationPage.xaml.cs">
+      <DependentUpon>ConversationPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="FinishedPage.xaml.cs">
       <DependentUpon>FinishedPage.xaml</DependentUpon>
     </Compile>
@@ -108,6 +116,12 @@
     </Compile>
     <Compile Include="StallPage.xaml.cs">
       <DependentUpon>StallPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\DscPivotItem.xaml.cs">
+      <DependentUpon>DscPivotItem.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\SenderMsgItem.xaml.cs">
+      <DependentUpon>SenderMsgItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="WelcomePage.xaml.cs">
       <DependentUpon>WelcomePage.xaml</DependentUpon>
@@ -142,6 +156,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="ConversationPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="FinishedPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -155,6 +173,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="StallPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\DscPivotItem.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\SenderMsgItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -174,8 +200,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\ListItem.cs" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
     <VisualStudioVersion>12.0</VisualStudioVersion>
   </PropertyGroup>

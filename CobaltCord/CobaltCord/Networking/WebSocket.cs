@@ -6,6 +6,8 @@ using WebSocketStreamer;
 using WebSocketStreamer.Networking;
 using CobaltCord.Classes;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CobaltCord.Networking
 {
@@ -25,6 +27,10 @@ namespace CobaltCord.Networking
 
         // WebSocket events
         public event EventHandler ReadyReceived;
+
+        // Channel data
+        public JArray recipientsData;
+        public JArray privateChannelsData;
 
         public WebSocket()
         {
@@ -109,7 +115,8 @@ namespace CobaltCord.Networking
         private async Task HandleReadyEvt(string data)
         {
             var parsedReady = JObject.Parse(data);
-            UserStatusMgr.HandleUserStatus(parsedReady);
+            await UserStatusMgr.HandleUserStatus(parsedReady);
+            ReadyReceived?.Invoke(this, EventArgs.Empty);
         }
 
         private async void HandleMessage(string data)
@@ -127,14 +134,16 @@ namespace CobaltCord.Networking
                         {
                             case "READY":
                                 string wsJsonEvt = json["d"].ToString(Formatting.None);
+                                recipientsData = (JArray)(json["d"]["relationships"] ?? new JArray());
+                                privateChannelsData = (JArray)(json["d"]["private_channels"] ?? new JArray());
                                 // Only uncomment if you need to look at the READY event data as this is a large payload.
-                                // Debug.WriteLine(json["d"] != null ? wsJsonEvt : "null");
+                                Debug.WriteLine(json["d"] != null ? wsJsonEvt : "null");
 
                                 await HandleReadyEvt(wsJsonEvt);
-                                ReadyReceived?.Invoke(this, EventArgs.Empty);
                                 break;
                             default:
-                                Debug.WriteLine($"[WS] Unhandled event: {eventType}, data: {json["d"]?.ToString(Formatting.None)}");
+                                // Only uncomment if you want to debug an event from Discord, this is a mess in the console.
+                                // Debug.WriteLine($"[WS] Unhandled event: {eventType}, data: {json["d"]?.ToString(Formatting.None)}");
                                 break;
                         }
                         break;
@@ -162,6 +171,27 @@ namespace CobaltCord.Networking
             {
                 Debug.WriteLine($"Error processing message: {ex.Message}");
             }
+        }
+
+
+        public IEnumerable<JObject> GetUserChannels(bool orderByRecent)
+        {
+            var channels = privateChannelsData
+                .OfType<JObject>()
+                .Where(c =>
+                {
+                    int type = c["type"] != null ? (int)c["type"] : 0;
+                    return type == 1 || type == 3;
+                });
+
+            if (orderByRecent)
+            {
+                channels = channels
+                    .OrderByDescending(c =>
+                        c["last_message_id"] != null ? (string)c["last_message_id"] : "0");
+            }
+
+            return channels;
         }
     }
 }

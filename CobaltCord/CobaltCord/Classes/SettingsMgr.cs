@@ -32,6 +32,18 @@ namespace CobaltCord.Classes
             localSettings.Values[key] = value;
         }
 
+        public static string DiscordDPN
+        {
+            get { return GetString("discordDPN"); }
+            set { SetString("discordDPN", value); }
+        }
+
+        public static string DiscordSTS
+        {
+            get { return GetString("discordSTS"); }
+            set { SetString("discordSTS", value); }
+        }
+
         public static string DiscordTkn
         {
             get { return GetString("discordTkn"); }
@@ -42,6 +54,12 @@ namespace CobaltCord.Classes
         {
             get { return GetString("discordUID"); }
             set { SetString("discordUID", value); }
+        }
+
+        public static bool CachingWarning
+        {
+            get { return GetBool("cacheWarn"); }
+            set { SetBool("cacheWarn", value); }
         }
 
         public static bool FinishedWelcome

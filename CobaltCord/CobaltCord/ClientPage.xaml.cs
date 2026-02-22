@@ -18,8 +18,10 @@ using System.Diagnostics;
 using System.Net.Http;
 using CobaltCord.Networking;
 using CobaltCord.Classes;
+using CobaltCord.UserControls;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.ObjectModel;
 
 namespace CobaltCord
 {
@@ -30,11 +32,17 @@ namespace CobaltCord
         private string dscToken;
 
         // Magic numbers used throughout the code for defining Discord stuff
-        private const int AVATAR_SIZE = 64;
+        private const int DM_CHANNEL_TYPE = 1;
+        private const int GROUP_CHANNEL_TYPE = 3;
+
+        // The list for direct messages on the Pivot
+        public ObservableCollection<ListItem> DirectMessages { get; set; }
+            = new ObservableCollection<ListItem>();
 
         public ClientPage()
         {
             this.InitializeComponent();
+            this.DataContext = this;
             dscToken = SettingsMgr.DiscordTkn;
             _webSocket = new WebSocket();
 
@@ -44,71 +52,204 @@ namespace CobaltCord
 
         private async Task InitializeUserInfo()
         {
-            string userInfo = await api.SendAPI("users/@me", HttpMethod.Get, dscToken, null, null, null, null);
-            var parsedInfo = JObject.Parse(userInfo);
-
-            string displayName = string.Empty;
-            string avatarHash = string.Empty;
-
-            JToken globalNameToken;
-            if (parsedInfo.TryGetValue("global_name", out globalNameToken) && globalNameToken.Type != JTokenType.Null) { displayName = globalNameToken.ToString(); }
-
-            JToken avatarHashToken;
-            if (parsedInfo.TryGetValue("avatar", out avatarHashToken) && avatarHashToken.Type != JTokenType.Null) { avatarHash = avatarHashToken.ToString(); }
-
-            if (string.IsNullOrWhiteSpace(SettingsMgr.DiscordUID))
+            try
             {
-                JToken UIDToken;
-                if (parsedInfo.TryGetValue("id", out UIDToken) && UIDToken.Type != JTokenType.Null) { SettingsMgr.DiscordUID = UIDToken.ToString(); }
+                if (!string.IsNullOrEmpty(SettingsMgr.DiscordDPN) || !string.IsNullOrEmpty(SettingsMgr.DiscordSTS))
+                {
+                    usernameText.Text = SettingsMgr.DiscordDPN;
+                    statusText.Text = SettingsMgr.DiscordSTS;
+                }
+
+                string userInfo = await api.SendAPI("users/@me", HttpMethod.Get, dscToken, null, null, null, null);
+                var parsedInfo = JObject.Parse(userInfo);
+
+                string displayName = string.Empty;
+                string avatarHash = string.Empty;
+
+                JToken globalNameToken;
+                if (parsedInfo.TryGetValue("global_name", out globalNameToken) && globalNameToken.Type != JTokenType.Null) { displayName = globalNameToken.ToString(); }
+
+                JToken avatarHashToken;
+                if (parsedInfo.TryGetValue("avatar", out avatarHashToken) && avatarHashToken.Type != JTokenType.Null) { avatarHash = avatarHashToken.ToString(); }
+
+                if (string.IsNullOrWhiteSpace(SettingsMgr.DiscordUID))
+                {
+                    JToken UIDToken;
+                    if (parsedInfo.TryGetValue("id", out UIDToken) && UIDToken.Type != JTokenType.Null) { SettingsMgr.DiscordUID = UIDToken.ToString(); }
+                }
+                else
+                {
+                    // Do nothing and ignore the code above, we don't need it.
+                }
+
+                // Set the user data that we have collected.
+                string avatarUrl = HelperMethods.GetAvatarUrl(SettingsMgr.DiscordUID, avatarHash, false, false);
+                await AvatarHelper.SetAvatarFromHash(UserAvatar, SettingsMgr.DiscordUID, avatarHash, avatarUrl);
+
+                // Gets the main users custom status to use at the bottom of the PseudoCommandBar.
+                string custStatus = UserStatusMgr.UserStatusStore.GetCustomStatus("0") ?? "Add a custom status...";
+
+                SettingsMgr.DiscordDPN = displayName;
+                SettingsMgr.DiscordSTS = custStatus;
+
+                usernameText.Text = displayName;
+                statusText.Text = custStatus;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"An exception has occured: {ex.Message}");
+            }
+        }
+
+        private async Task InitializePivotLists()
+        {
+            if (SettingsMgr.CachingWarning)
+            {
+                // Continue along with the application as normal.
             }
             else
             {
-                // Do nothing and ignore the code above, we don't need it.
+                var dialog = new ContentDialog
+                {
+                    Title = "letting you know...",
+                    Content = new TextBlock
+                    {
+                        Text = "Your messages list appears empty because you haven’t opened any conversations yet.",
+                        TextWrapping = Windows.UI.Xaml.TextWrapping.Wrap
+                    },
+                    PrimaryButtonText = "explain further",
+                    SecondaryButtonText = "alright, I get it"
+                };
+
+                dialog.ShowAsync().Completed = (info, status) =>
+                {
+                    if (info.GetResults() == ContentDialogResult.Primary)
+                    {
+                        var cacheDialog = new ContentDialog
+                        {
+                            Title = "the app caches conversations",
+                            Content = new TextBlock
+                            {
+                                Text = "CobaltCord caches your messages. Cached messages will appear in your messages list, and new messages that you receive while you're in the app will show up automatically.",
+                                TextWrapping = Windows.UI.Xaml.TextWrapping.Wrap
+                            },
+                            PrimaryButtonText = "understood!"
+                        };
+
+                        cacheDialog.ShowAsync().Completed = (information, statusOfStatus) => { if (information.GetResults() == ContentDialogResult.Primary) { SettingsMgr.CachingWarning = true; } };
+                    }
+                    else if (info.GetResults() == ContentDialogResult.Secondary) { SettingsMgr.CachingWarning = true; }
+                };
             }
 
-            // Set the user data that we have collected.
-            string avatarUrl = GetAvatarUrl(SettingsMgr.DiscordUID, avatarHash, false, false);
-            await SetImageFromUrl(UserAvatar, avatarUrl);
+            var dscChannels = _webSocket.GetUserChannels(true);
 
-            // Gets the main users custom status to use at the bottom of the PseudoCommandBar.
-            await WaitForReadyEvt(); // Uses an event in WebSocket to know when exactly to check for data.
-            string custStatus = UserStatusMgr.UserStatusStore.GetCustomStatus("0") ?? "Add a custom status...";
+            foreach (var channel in dscChannels)
+            {
+                int type = channel["type"]?.Value<int>() ?? 0;
+                if (type == DM_CHANNEL_TYPE)
+                {
+                    var recipients = channel["recipients"] as JArray;
+                    if (recipients == null || recipients.Count == 0) continue;
 
-            usernameText.Text = displayName;
-            statusText.Text = custStatus;
+                    var recipient = recipients[0] as JObject;
+                    if (recipient == null) continue;
+
+                    string userId = recipient["id"]?.Value<string>();
+                    string channelId = channel["id"]?.Value<string>();
+                    string combinedId = $"{userId}|{channelId}";
+
+                    string displayName = recipient["global_name"]?.Value<string>();
+                    string dscUserName = recipient["username"]?.Value<string>();
+
+                    DirectMessages.Add(new ListItem
+                    {
+                        Name = displayName,
+                        // SecondaryText = userStatus,
+                        CombinedId = combinedId
+                    });
+                }
+                else if (type == GROUP_CHANNEL_TYPE)
+                {
+                    var recipients = channel["recipients"] as JArray;
+                    int recipientCount = recipients?.Count ?? 0;
+                    int memberCount = recipientCount + 1;
+
+                    HelperClasses.User[] members = null;
+
+                    if (recipients != null && recipients.Count > 0)
+                    {
+                        members = recipients
+                            .OfType<JObject>()
+                            .Select(r =>
+                            {
+                                var globalNameToken = r["global_name"];
+                                var usernameToken = r["username"];
+                                var idToken = r["id"];
+
+                                var globalName = globalNameToken != null ? globalNameToken.Value<string>() : null;
+                                var username = usernameToken != null ? usernameToken.Value<string>() : null;
+                                var id = idToken != null ? idToken.Value<string>() : null;
+
+                                return new HelperClasses.User(
+                                    globalName ?? username ?? "Unknown",
+                                    username ?? "Unknown",
+                                    id ?? "0"
+                                );
+                            })
+                            .ToArray();
+                    }
+
+                    string channelId = channel["id"]?.Value<string>();
+                    string groupName = channel["name"]?.Value<string>();
+
+                    string combinedId = $"Group|{channelId}";
+
+                    DirectMessages.Add(new ListItem
+                    {
+                        Name = groupName,
+                        SecondaryText = $"{memberCount.ToString()} members in total",
+                        CombinedId = combinedId
+                    });
+                }
+            }
+        }
+
+        private void ListView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            var clickedItem = e.ClickedItem as ListItem;
+            if (clickedItem != null)
+            {
+                Debug.WriteLine("Clicked the item, now loading conversation page.");
+                Frame.Navigate(typeof(ConversationPage), new HelperClasses.ConversationNavData
+                {
+                    CombinedId = clickedItem.CombinedId,
+                    DisplayName = clickedItem.Name
+                });
+            }
         }
 
         private async void ClientPage_Loaded(object sender, RoutedEventArgs e)
         {
-            await _webSocket.StartSocket();
-            await InitializeUserInfo();
-        }
-
-        private async Task SetImageFromUrl(Image targetImage, string url)
-        {
-            if (string.IsNullOrWhiteSpace(url) || targetImage == null)
-                return;
-
             try
             {
-                using (HttpClient client = new HttpClient())
-                {
-                    var bytes = await client.GetByteArrayAsync(url);
-                    using (var stream = new Windows.Storage.Streams.InMemoryRandomAccessStream())
-                    {
-                        await stream.WriteAsync(bytes.AsBuffer());
-                        stream.Seek(0);
+                ShowProgressIndicator(true, "Initializing WebSockets...");
+                await _webSocket.StartSocket();
 
-                        BitmapImage bitmap = new BitmapImage();
-                        await bitmap.SetSourceAsync(stream);
+                ShowProgressIndicator(true, "Waiting for data to come through...\nThis may take a bit...");
+                await WaitForReadyEvt();
 
-                        targetImage.Source = bitmap;
-                    }
-                }
+                ShowProgressIndicator(true, "Loading your user data...");
+                await InitializeUserInfo();
+
+                ShowProgressIndicator(true, "Loading messages...");
+                await InitializePivotLists();
+
+                ShowProgressIndicator(false, string.Empty);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to load image: {ex.Message}");
+                Debug.WriteLine($"Exception happened when loading client data: {ex}");
             }
         }
 
@@ -128,15 +269,13 @@ namespace CobaltCord
             await tcs.Task;
         }
 
-        public string GetAvatarUrl(string Id, string Hash, bool isServer, bool isGC)
+        private void ShowProgressIndicator(bool isVisible, string text = "")
         {
-            if (isServer)
-                return $"https://cdn.discordapp.com/icons/{Id}/{Hash}.png?size={AVATAR_SIZE}";
+            ProgressRingControl.IsActive = isVisible;
+            ProgressRingControl.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
 
-            if (isGC)
-                return $"https://cdn.discordapp.com/channel-icons/{Id}/{Hash}.png?size={AVATAR_SIZE}";
-
-            return $"https://cdn.discordapp.com/avatars/{Id}/{Hash}.png?size={AVATAR_SIZE}";
+            ProgressText.Text = text;
+            ProgressText.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
         }
 
         /* 

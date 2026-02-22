@@ -1,0 +1,58 @@
+﻿<UserControl
+    x:Class="CobaltCord.UserControls.DscPivotItem"
+    x:Name="root"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CobaltCord.UserControls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Background="Transparent"
+    mc:Ignorable="d"
+    d:DesignHeight="55"
+    d:DesignWidth="400">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0" x:Name="LeftInfo" HorizontalAlignment="Left">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock
+                Grid.Row="0"
+                FontSize="24"
+                Style="{StaticResource BaseTextBlockStyle}"
+                VerticalAlignment="Center"
+                Text="{Binding ItemName, ElementName=root}"
+                TextWrapping="NoWrap"
+                TextTrimming="CharacterEllipsis" />
+            <TextBlock
+                Grid.Row="1"
+                FontSize="14"
+                Style="{StaticResource BaseTextBlockStyle}"
+                Opacity="0.65"
+                Text="{Binding ItemSecondaryText, ElementName=root}" />
+        </Grid>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                Grid.Row="0"
+                FontSize="14"
+                Style="{StaticResource BaseTextBlockStyle}"
+                VerticalAlignment="Top"
+                Text="{Binding MessageTime, ElementName=root}" />
+
+            <Grid x:Name="NotificationCounter" Grid.Row="1" Width="25" Height="25" HorizontalAlignment="Right" VerticalAlignment="Bottom" Visibility="Collapsed">
+                <Ellipse Fill="#FF3333" />
+                <TextBlock Text="{Binding NotificationCount}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20" Foreground="White" Margin="0,2,0,0" />
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

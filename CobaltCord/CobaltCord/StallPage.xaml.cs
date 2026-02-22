@@ -14,6 +14,7 @@ namespace CobaltCord
         private WelcomePage _welcomePage;
         private LoginPage _loginPage;
         private FinishedPage _finishedPage;
+        private ClientPage _clientPage;
 
         public StallPage()
         {
@@ -30,13 +31,15 @@ namespace CobaltCord
         {
             // We delay the switching to the next page to have a nice animation.
             // Sorry if this causes an inconvenience!
-            await Task.Delay(1500);
             if (SettingsMgr.FinishedWelcome)
             {
+                await Task.Delay(1500);
+                _clientPage = new ClientPage();
                 Frame.Navigate(typeof(ClientPage));
             }
             else
             {
+                await Task.Delay(1500);
                 Frame.Navigate(typeof(WelcomePage));
             }
         }

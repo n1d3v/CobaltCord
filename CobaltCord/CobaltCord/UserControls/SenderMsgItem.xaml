@@ -1,0 +1,58 @@
+﻿<UserControl
+    x:Class="CobaltCord.UserControls.SenderMsgItem"
+    x:Name="root"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CobaltCord.UserControls"
+    xmlns:convs="using:CobaltCord.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="68"
+    d:DesignWidth="400">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image x:Name="UserAvatar" Grid.Column="0" Source="ms-appx:///Images/Client/user-pfp.png" Height="50" Margin="0,0,15,0" VerticalAlignment="Top" />
+            <StackPanel Grid.Column="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Grid.Column="0"
+                        Text="{Binding AuthorName, ElementName=root}"
+                        Foreground="White"
+                        TextWrapping="Wrap"
+                        FontWeight="Bold"
+                        FontSize="16"
+                        Margin="0,0,10,0"
+                        Style="{StaticResource BaseTextBlockStyle}" />
+                    <TextBlock 
+                        Grid.Column="1"
+                        Text="{Binding MessageTime, ElementName=root}"
+                        Foreground="White"
+                        TextWrapping="Wrap"
+                        FontSize="16"
+                        Opacity="0.5"
+                        Style="{StaticResource BaseTextBlockStyle}" />
+                </Grid>
+                <TextBlock 
+                   Text="{Binding MessageText, ElementName=root}"
+                   Foreground="White"
+                   TextWrapping="Wrap"
+                   LineHeight="25"
+                   FontSize="20"
+                   Style="{StaticResource BaseTextBlockStyle}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

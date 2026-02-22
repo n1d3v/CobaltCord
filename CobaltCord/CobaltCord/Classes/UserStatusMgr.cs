@@ -1,10 +1,14 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
 
 namespace CobaltCord.Classes
 {
     internal class UserStatusMgr
     {
+        public delegate void StatusUpdatedHandler(string userId, string status, string customStatus);
+        public static event StatusUpdatedHandler StatusUpdated;
+
         public class StatusData
         {
             public string Status { get; set; }
@@ -27,9 +31,15 @@ namespace CobaltCord.Classes
                     }
                     else
                     {
-                        _statuses.Add(userId, new StatusData { Status = status, CustomStatus = customStatus });
+                        _statuses.Add(userId, new StatusData
+                        {
+                            Status = status,
+                            CustomStatus = customStatus
+                        });
                     }
                 }
+
+                StatusUpdated?.Invoke(userId, status, customStatus);
             }
 
             public static string GetStatus(string userId)
@@ -38,7 +48,8 @@ namespace CobaltCord.Classes
                 {
                     if (_statuses.ContainsKey(userId))
                         return _statuses[userId].Status;
-                    return "offline";
+
+                    return MapStatus("offline");
                 }
             }
 
@@ -69,72 +80,104 @@ namespace CobaltCord.Classes
             }
         }
 
-        public static void HandleUserStatus(JObject messageData)
+        private static string MapStatus(string status)
         {
-            var userSettings = messageData["user_settings"] as JObject;
-            if (userSettings != null)
+            if (string.IsNullOrWhiteSpace(status))
+                return "Unknown";
+
+            switch (status.ToLower())
             {
-                string rawMainStatus = userSettings["status"] != null
-                    ? userSettings["status"].ToString()
-                    : "Unknown";
+                case "online":
+                    return "Online";
 
-                string rawCustomStatus = string.Empty;
-                var customStatusObj = userSettings["custom_status"] as JObject;
-                if (customStatusObj != null && customStatusObj["text"] != null)
-                {
-                    rawCustomStatus = customStatusObj["text"].ToString();
-                }
+                case "offline":
+                    return "Offline";
 
-                UserStatusStore.UpdateStatus("0", rawMainStatus, rawCustomStatus);
+                case "idle":
+                    return "Idle";
+
+                case "dnd":
+                    return "Do not disturb";
+
+                case "invisible":
+                    return "Invisible";
+
+                default:
+                    return char.ToUpper(status[0]) + status.Substring(1);
             }
+        }
 
-            var presences = messageData["presences"] as JArray;
-            if (presences != null)
+        public static async Task HandleUserStatus(JObject messageData)
+        {
+            await Task.Run(() =>
             {
-                foreach (var presence in presences)
+                var userSettings = messageData["user_settings"] as JObject;
+                if (userSettings != null)
                 {
-                    var user = presence["user"] as JObject;
-                    if (user == null) continue;
+                    string rawMainStatus = userSettings["status"] != null
+                        ? MapStatus(userSettings["status"].ToString())
+                        : "Unknown";
 
-                    string userId = user["id"] != null ? user["id"].ToString() : null;
-                    if (userId == null) continue;
-
-                    string status = presence["status"] != null ? presence["status"].ToString() : "offline";
-                    string customStatus = string.Empty;
-
-                    var activities = presence["activities"] as JArray;
-                    if (activities != null)
+                    string rawCustomStatus = string.Empty;
+                    var customStatusObj = userSettings["custom_status"] as JObject;
+                    if (customStatusObj != null && customStatusObj["text"] != null)
                     {
-                        foreach (var activity in activities)
-                        {
-                            int type = activity["type"] != null ? (int)activity["type"] : -1;
-
-                            if (type == 0 && activity["name"] != null)
-                            {
-                                customStatus = "Playing " + activity["name"].ToString();
-                                break;
-                            }
-                            else if (type == 1 && activity["details"] != null)
-                            {
-                                customStatus = "Streaming " + activity["details"].ToString();
-                                break;
-                            }
-                            else if (type == 2 && activity["name"] != null)
-                            {
-                                customStatus = "Listening to " + activity["name"].ToString();
-                                break;
-                            }
-                            else if (type == 4 && activity["state"] != null)
-                            {
-                                customStatus = activity["state"].ToString();
-                                break;
-                            }
-                        }
+                        rawCustomStatus = customStatusObj["text"].ToString();
                     }
 
-                    UserStatusStore.UpdateStatus(userId, status, customStatus);
+                    UserStatusStore.UpdateStatus("0", rawMainStatus, rawCustomStatus);
                 }
-            }
+
+                var presences = messageData["presences"] as JArray;
+                if (presences != null)
+                {
+                    foreach (var presence in presences)
+                    {
+                        var user = presence["user"] as JObject;
+                        if (user == null) continue;
+
+                        string userId = user["id"] != null ? user["id"].ToString() : null;
+                        if (userId == null) continue;
+
+                        string status = presence["status"] != null
+                            ? MapStatus(presence["status"].ToString())
+                            : "Offline";
+                        string customStatus = string.Empty;
+
+                        var activities = presence["activities"] as JArray;
+                        if (activities != null)
+                        {
+                            foreach (var activity in activities)
+                            {
+                                int type = activity["type"] != null ? (int)activity["type"] : -1;
+
+                                if (type == 0 && activity["name"] != null)
+                                {
+                                    customStatus = "Playing " + activity["name"].ToString();
+                                    break;
+                                }
+                                else if (type == 1 && activity["details"] != null)
+                                {
+                                    customStatus = "Streaming " + activity["details"].ToString();
+                                    break;
+                                }
+                                else if (type == 2 && activity["name"] != null)
+                                {
+                                    customStatus = "Listening to " + activity["name"].ToString();
+                                    break;
+                                }
+                                else if (type == 4 && activity["state"] != null)
+                                {
+                                    customStatus = activity["state"].ToString();
+                                    break;
+                                }
+                            }
+                        }
+
+                        UserStatusStore.UpdateStatus(userId, status, customStatus);
+                    }
+                }
+            });
         }
     }
 }
