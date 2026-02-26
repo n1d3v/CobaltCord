@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using Windows.UI;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
+using Windows.UI.Xaml.Media;
 using System.Threading.Tasks;
 using System.Net.Http;
 using CobaltCord.Classes;
@@ -34,15 +36,12 @@ namespace CobaltCord
         private async Task LoadMessages()
         {
             string msgContent = await api.SendAPI($"channels/{channelId}/messages?limit={MAX_MESSAGES_LIMIT}", HttpMethod.Get, dscToken, null, null, null, null);
+
             var parsedMsgContent = JArray.Parse(msgContent);
 
-            if (parsedMsgContent.Count > 0)
-            {
-                string newestMessage = parsedMsgContent[0]["content"].Value<string>();
-                string newestAuthor = parsedMsgContent[0]["author"]["global_name"].Value<string>();
-                // Put the two together and set them as the last message
-                MessageCache.SetLastMessage(channelId, $"{newestAuthor}: {newestMessage}");
-            }
+            // Keep track of the current values
+            string lastMessageText = null;
+            string lastMessageTime = null;
 
             for (int i = parsedMsgContent.Count - 1; i >= 0; i--)
             {
@@ -65,6 +64,16 @@ namespace CobaltCord
                     MessageText = messageText,
                     MessageTime = formattedTime
                 });
+
+                lastMessageText = $"{messageAuthor}: {messageText}";
+                lastMessageTime = formattedTime;
+            }
+
+            if (!string.IsNullOrEmpty(lastMessageText))
+            {
+                MessageCache.ClearAll(channelId);
+                MessageCache.SetLastMessage(channelId, lastMessageText);
+                MessageCache.SetLastTime(channelId, lastMessageTime);
             }
         }
 
@@ -97,6 +106,17 @@ namespace CobaltCord
         private void backButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             Frame.Navigate(typeof(ClientPage));
+        }
+
+        // Fixes the bug with a transparent background where the text does not appear
+        private void messageBox_LostFocus(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            messageBox.Foreground = new SolidColorBrush(Colors.White);
+        }
+
+        private void messageBox_GotFocus(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            messageBox.Foreground = new SolidColorBrush(Colors.Black);
         }
     }
 }

@@ -173,14 +173,16 @@ namespace CobaltCord
                     ShowProgressIndicator(true, $"Downloading profile pictures ({currentDMCount}/{totalDMs})");
 
                     string lastMsg = MessageCache.GetLastMessage(channelId);
+                    string lastMsgTime = MessageCache.GetLastTime(channelId);
 
                     string avatarUrl = HelperMethods.GetAvatarUrl(userId, dscAvatarHash, false, false);
                     await AvatarHelper.SetAvatarFromHash(DoNotUnhideThisImage, userId, dscAvatarHash, avatarUrl);
 
                     dmItemsToAdd.Add(new ListItem
                     {
-                        Name = displayName,
-                        SecondaryText = lastMsg,
+                        ItemName = displayName,
+                        ItemSecondaryText = lastMsg,
+                        MessageTime = lastMsgTime,
                         CombinedId = combinedId
                     });
                 }
@@ -222,8 +224,8 @@ namespace CobaltCord
 
                     dmItemsToAdd.Add(new ListItem
                     {
-                        Name = groupName,
-                        SecondaryText = $"{memberCount} members in total",
+                        ItemName = groupName,
+                        ItemSecondaryText = $"{memberCount} members in total",
                         CombinedId = combinedId
                     });
                 }
@@ -244,7 +246,7 @@ namespace CobaltCord
                 Frame.Navigate(typeof(ConversationPage), new HelperClasses.ConversationNavData
                 {
                     CombinedId = clickedItem.CombinedId,
-                    DisplayName = clickedItem.Name
+                    DisplayName = clickedItem.ItemName
                 });
             }
         }

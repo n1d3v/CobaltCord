@@ -29,12 +29,14 @@
                 VerticalAlignment="Center"
                 Text="{Binding ItemName, ElementName=root}"
                 TextWrapping="NoWrap"
+                Padding="0,0,15,0"
                 TextTrimming="CharacterEllipsis" />
             <TextBlock
                 Grid.Row="1"
                 FontSize="14"
                 Style="{StaticResource BaseTextBlockStyle}"
                 Opacity="0.65"
+                Padding="0,0,15,0"
                 Text="{Binding ItemSecondaryText, ElementName=root}" />
         </Grid>
         <Grid Grid.Column="1">
@@ -47,6 +49,7 @@
                 FontSize="14"
                 Style="{StaticResource BaseTextBlockStyle}"
                 VerticalAlignment="Top"
+                Padding="0,0,15,0"
                 Text="{Binding MessageTime, ElementName=root}" />
 
             <Grid x:Name="NotificationCounter" Grid.Row="1" Width="25" Height="25" HorizontalAlignment="Right" VerticalAlignment="Bottom" Visibility="Collapsed">

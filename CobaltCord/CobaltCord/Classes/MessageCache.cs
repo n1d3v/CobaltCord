@@ -4,52 +4,58 @@ namespace CobaltCord.Classes
 {
     static class MessageCache
     {
-        private static ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+        private static readonly ApplicationDataContainer LocalSettings = ApplicationData.Current.LocalSettings;
 
+        // Methods for helping out with the functions below
         private static string GetString(string key)
         {
             object value;
-            if (localSettings.Values.TryGetValue(key, out value) && value is string)
+            if (LocalSettings.Values.TryGetValue(key, out value) && value is string)
                 return (string)value;
 
             return null;
         }
 
-        private static void SetString(string key, string value)
+        private static void SetString(string key, string value) => LocalSettings.Values[key] = value;
+
+        private static string MsgKey(string channelId) => $"lastmsg_{channelId}";
+        private static string TimeKey(string channelId) => $"lasttime_{channelId}";
+
+        // Methods for message functionality
+        public static string GetLastMessage(string channelId) => string.IsNullOrWhiteSpace(channelId) ? null : GetString(MsgKey(channelId));
+
+        public static void SetLastMessage(string channelId, string message)
         {
-            localSettings.Values[key] = value;
+            if (string.IsNullOrWhiteSpace(channelId)) return;
+            SetString(MsgKey(channelId), message);
         }
 
-        private static string GetKey(string userId)
+        public static void ClearMessage(string channelId)
         {
-            return "lastmsg_" + userId;
+            if (string.IsNullOrWhiteSpace(channelId)) return;
+            LocalSettings.Values.Remove(MsgKey(channelId));
         }
 
-        public static string GetLastMessage(string userId)
-        {
-            if (string.IsNullOrWhiteSpace(userId))
-                return null;
+        // Methods for time functionality
+        public static string GetLastTime(string channelId) => string.IsNullOrWhiteSpace(channelId) ? null : GetString(TimeKey(channelId));
 
-            return GetString(GetKey(userId));
+        public static void SetLastTime(string channelId, string time)
+        {
+            if (string.IsNullOrWhiteSpace(channelId)) return;
+            SetString(TimeKey(channelId), time);
         }
 
-        public static void SetLastMessage(string userId, string message)
+        public static void ClearTime(string channelId)
         {
-            if (string.IsNullOrWhiteSpace(userId))
-                return;
-
-            SetString(GetKey(userId), message);
+            if (string.IsNullOrWhiteSpace(channelId)) return;
+            LocalSettings.Values.Remove(TimeKey(channelId));
         }
 
-        public static void ClearMessage(string userId)
+        // Clear all of the previous details
+        public static void ClearAll(string channelId)
         {
-            if (string.IsNullOrWhiteSpace(userId))
-                return;
-
-            string key = GetKey(userId);
-
-            if (localSettings.Values.ContainsKey(key))
-                localSettings.Values.Remove(key);
+            ClearMessage(channelId);
+            ClearTime(channelId);
         }
     }
 }

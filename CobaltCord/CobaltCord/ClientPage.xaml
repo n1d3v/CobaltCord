@@ -46,8 +46,9 @@
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <uc:DscPivotItem
-                                ItemName="{Binding Name}"
-                                ItemSecondaryText="{Binding SecondaryText}"
+                                ItemName="{Binding ItemName}"
+                                ItemSecondaryText="{Binding ItemSecondaryText}"
+                                MessageTime="{Binding MessageTime}"
                                 CombinedId="{Binding CombinedId}" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
