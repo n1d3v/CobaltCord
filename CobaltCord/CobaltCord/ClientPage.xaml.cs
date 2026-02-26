@@ -172,12 +172,15 @@ namespace CobaltCord
                     currentDMCount++;
                     ShowProgressIndicator(true, $"Downloading profile pictures ({currentDMCount}/{totalDMs})");
 
+                    string lastMsg = MessageCache.GetLastMessage(channelId);
+
                     string avatarUrl = HelperMethods.GetAvatarUrl(userId, dscAvatarHash, false, false);
                     await AvatarHelper.SetAvatarFromHash(DoNotUnhideThisImage, userId, dscAvatarHash, avatarUrl);
 
                     dmItemsToAdd.Add(new ListItem
                     {
                         Name = displayName,
+                        SecondaryText = lastMsg,
                         CombinedId = combinedId
                     });
                 }

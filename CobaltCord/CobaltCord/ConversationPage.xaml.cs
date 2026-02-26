@@ -36,6 +36,14 @@ namespace CobaltCord
             string msgContent = await api.SendAPI($"channels/{channelId}/messages?limit={MAX_MESSAGES_LIMIT}", HttpMethod.Get, dscToken, null, null, null, null);
             var parsedMsgContent = JArray.Parse(msgContent);
 
+            if (parsedMsgContent.Count > 0)
+            {
+                string newestMessage = parsedMsgContent[0]["content"].Value<string>();
+                string newestAuthor = parsedMsgContent[0]["author"]["global_name"].Value<string>();
+                // Put the two together and set them as the last message
+                MessageCache.SetLastMessage(channelId, $"{newestAuthor}: {newestMessage}");
+            }
+
             for (int i = parsedMsgContent.Count - 1; i >= 0; i--)
             {
                 var message = parsedMsgContent[i];
