@@ -16,6 +16,11 @@ using CobaltCord.Networking;
 using CobaltCord.Classes;
 using System.Collections.Generic;
 using System.Text;
+using ZXing;
+using ZXing.QrCode;
+using ZXing.Common;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Graphics.Imaging;
 
 namespace CobaltCord
 {
@@ -47,8 +52,7 @@ namespace CobaltCord
         {
             try
             {
-                BitmapImage qrBitmap = await authSocket.GenerateQRCode(content);
-
+                var qrBitmap = await authSocket.GenerateQRCode(content);
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
                 {
                     dscQR.Source = qrBitmap;
@@ -194,23 +198,35 @@ namespace CobaltCord
             if (page != null) { await page.ShowQRCode(fullRA); }
         }
 
-        public async Task<BitmapImage> GenerateQRCode(string content)
+
+        public async Task<WriteableBitmap> GenerateQRCode(string content)
         {
-            string qrUrl = $"https://qrcodecat.com/api/qrcode?data={content}";
+            int size = 250; // The size defined in the XAML UI
+            var writer = new QRCodeWriter();
+            var matrix = writer.encode(content, BarcodeFormat.QR_CODE, size, size);
 
-            var httpClient = new HttpClient();
-            var buffer = await httpClient.GetBufferAsync(new Uri(qrUrl));
-            BitmapImage bitmap = null;
-
-            await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+            WriteableBitmap bitmap = null;
+            await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                bitmap = new BitmapImage();
-                using (var memStream = new InMemoryRandomAccessStream())
+                bitmap = new WriteableBitmap(size, size);
+                var pixels = bitmap.PixelBuffer.ToArray();
+
+                for (int y = 0; y < size; y++)
                 {
-                    await memStream.WriteAsync(buffer);
-                    memStream.Seek(0);
-                    await bitmap.SetSourceAsync(memStream);
+                    for (int x = 0; x < size; x++)
+                    {
+                        bool black = matrix[x, y];
+                        byte color = black ? (byte)0 : (byte)255;
+                        int index = (y * size + x) * 4;
+
+                        pixels[index + 0] = color;
+                        pixels[index + 1] = color;
+                        pixels[index + 2] = color;
+                        pixels[index + 3] = 255;
+                    }
                 }
+                using (var stream = bitmap.PixelBuffer.AsStream()) { stream.Write(pixels, 0, pixels.Length); }
+                bitmap.Invalidate();
             });
 
             return bitmap;
