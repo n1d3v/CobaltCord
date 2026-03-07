@@ -10,14 +10,22 @@ namespace CobaltCord.UserControls
         public SenderMsgItem()
         {
             this.InitializeComponent();
-            this.Loaded += async (s, e) =>
+        }
+
+        private async void ReloadAvatar()
+        {
+            string id = AuthorId;
+            string hash = AuthorHash;
+
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(hash))
+                return;
+
+            string avatarUrl = HelperMethods.GetAvatarUrl(id, hash, false, false);
+            await AvatarHelper.SetAvatarFromHash(UserAvatar, id, hash, avatarUrl);
+            if (AuthorId != id || AuthorHash != hash)
             {
-                if (!string.IsNullOrWhiteSpace(AuthorId) && !string.IsNullOrWhiteSpace(AuthorHash))
-                {
-                    string avatarUrl = HelperMethods.GetAvatarUrl(AuthorId, AuthorHash, false, false);
-                    await AvatarHelper.SetAvatarFromHash(UserAvatar, AuthorId, AuthorHash, avatarUrl);
-                }
-            };
+                UserAvatar.Source = null;
+            }
         }
 
         public string AuthorName
@@ -44,7 +52,14 @@ namespace CobaltCord.UserControls
                 nameof(AuthorId),
                 typeof(string),
                 typeof(SenderMsgItem),
-                new PropertyMetadata(string.Empty));
+                new PropertyMetadata(string.Empty, OnAuthorIdChanged));
+
+        private static void OnAuthorIdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var item = d as SenderMsgItem;
+            if (item != null)
+                item.ReloadAvatar();
+        }
 
         public string AuthorHash
         {
