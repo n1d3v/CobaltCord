@@ -13,7 +13,6 @@ namespace WebSocketStreamer.Networking
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");
-
             socket.MessageReceived += OnMessageReceived;
         }
 
@@ -21,17 +20,17 @@ namespace WebSocketStreamer.Networking
         {
             DataReader reader = args.GetDataReader();
 
-            if (sender.Control.MessageType == SocketMessageType.Utf8)
+            if (args.MessageType == SocketMessageType.Binary)
+            {
+                var bytes = new byte[reader.UnconsumedBufferLength];
+                reader.ReadBytes(bytes);
+                BinaryMessageReceived?.Invoke(bytes);
+            }
+            else
             {
                 reader.UnicodeEncoding = UnicodeEncoding.Utf8;
                 string message = reader.ReadString(reader.UnconsumedBufferLength);
                 TextMessageReceived?.Invoke(message);
-            }
-            else
-            {
-                byte[] data = new byte[reader.UnconsumedBufferLength];
-                reader.ReadBytes(data);
-                BinaryMessageReceived?.Invoke(data);
             }
         }
     }

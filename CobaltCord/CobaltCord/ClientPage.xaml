@@ -78,7 +78,7 @@
             </StackPanel>
             <StackPanel Grid.Column="1" x:Name="CBarButtons" Orientation="Horizontal" HorizontalAlignment="Right">
                 <AppBarButton x:Name="notificationsButton" Icon="Mail" Margin="0,0,-20,0" />
-                <AppBarButton x:Name="settingsButton" Icon="Setting" />
+                <AppBarButton x:Name="settingsButton" Icon="Setting" Click="settingsButton_Click" />
             </StackPanel>
         </Grid>
     </Grid>

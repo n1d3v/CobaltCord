@@ -291,6 +291,43 @@ namespace CobaltCord
             await tcs.Task;
         }
 
+        private void ClearUserData()
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "do you want to clear your data?",
+                Content = new TextBlock
+                {
+                    Text = "This will reset all settings in CobaltCord and exit the app, opening it up again will bring you to the setup wizard.",
+                    TextWrapping = Windows.UI.Xaml.TextWrapping.Wrap
+                },
+                PrimaryButtonText = "reset it all!",
+                SecondaryButtonText = "no thank you"
+            };
+
+            dialog.ShowAsync().Completed = (info, status) =>
+            {
+                if (info.GetResults() == ContentDialogResult.Primary)
+                {
+                    // Continue along with the clearing of the data
+                }
+                else if (info.GetResults() == ContentDialogResult.Secondary)
+                {
+                    return;
+                }
+            };
+
+            SettingsMgr.CachingWarning = false;
+            SettingsMgr.FinishedWelcome = false;
+            SettingsMgr.DiscordDPN = string.Empty;
+            SettingsMgr.DiscordSTS = string.Empty;
+            SettingsMgr.DiscordTkn = string.Empty;
+            SettingsMgr.DiscordUID = string.Empty;
+
+            // Exits the application
+            Application.Current.Exit();
+        }
+
         private void ShowProgressIndicator(bool isVisible, string text = "")
         {
             ProgressRingControl.IsActive = isVisible;
@@ -298,6 +335,11 @@ namespace CobaltCord
 
             ProgressText.Text = text;
             ProgressText.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void settingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            ClearUserData();
         }
 
         /* 

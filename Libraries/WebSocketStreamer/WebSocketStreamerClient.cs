@@ -18,30 +18,30 @@ namespace WebSocketStreamer
         private readonly string _url;
         public bool IsConnected { get; private set; }
         private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
-
         public event ClientClosedHandler OnClientClosedEvent;
 
         public WebSocketStreamerClient(string url)
         {
             _url = url;
             _socket = new MessageWebSocket();
-            _socket.Control.MessageType = SocketMessageType.Binary;
+            _socket.Control.MessageType = SocketMessageType.Utf8;
 
             _socket.MessageReceived += (sender, args) =>
             {
                 var reader = args.GetDataReader();
 
-                if (sender.Control.MessageType == SocketMessageType.Utf8)
+                if (args.MessageType == SocketMessageType.Binary)
+                {
+                    var length = reader.UnconsumedBufferLength;
+                    var bytes = new byte[length];
+                    reader.ReadBytes(bytes);
+                    BinaryMessageReceived?.Invoke(bytes);
+                }
+                else
                 {
                     reader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
                     var message = reader.ReadString(reader.UnconsumedBufferLength);
                     MessageReceived?.Invoke(message);
-                }
-                else
-                {
-                    byte[] data = new byte[reader.UnconsumedBufferLength];
-                    reader.ReadBytes(data);
-                    BinaryMessageReceived?.Invoke(data);
                 }
             };
 
@@ -61,7 +61,6 @@ namespace WebSocketStreamer
         {
             foreach (var kvp in _headers)
                 _socket.SetRequestHeader(kvp.Key, kvp.Value);
-
             await _socket.ConnectAsync(new Uri(_url));
             IsConnected = true;
         }
