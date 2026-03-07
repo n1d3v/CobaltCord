@@ -24,6 +24,7 @@
 
         public class CallNavData
         {
+            public string UserId { get; set; }
             public string ChannelId { get; set; }
         }
     }

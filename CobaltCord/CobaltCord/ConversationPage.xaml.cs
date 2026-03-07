@@ -18,6 +18,7 @@ namespace CobaltCord
     public sealed partial class ConversationPage : Page
     {
         private string channelId;
+        private string userId;
 
         internal static readonly API api = API.Instance;
         // private WebSocket _webSocket;
@@ -86,6 +87,7 @@ namespace CobaltCord
                 var channelIdParser = HelperMethods.ParseCombinedId(data.CombinedId);
 
                 // Set data for the page, channel ID is really important!
+                userId = channelIdParser.Item1;
                 channelId = channelIdParser.Item2;
                 chatTextName.Text = data.DisplayName;
                 dscToken = SettingsMgr.DiscordTkn;
@@ -117,7 +119,7 @@ namespace CobaltCord
 
         private void callPersonButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            Frame.Navigate(typeof(CallPage), new HelperClasses.CallNavData { ChannelId = channelId });
+            Frame.Navigate(typeof(CallPage), new HelperClasses.CallNavData { ChannelId = channelId, UserId = userId });
         }
 
         // Fixes the bug with a transparent background where the text does not appear
