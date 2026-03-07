@@ -72,8 +72,8 @@
             <StackPanel Grid.Column="0" x:Name="UserInformation" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0,0,0">
                 <Image x:Name="UserAvatar" Source="Images/Client/user-pfp.png" Width="50" />
                 <StackPanel VerticalAlignment="Center" Margin="10,0,0,0">
-                    <TextBlock x:Name="usernameText" Text="Loading your data..." Style="{StaticResource BaseTextBlockStyle}" />
-                    <TextBlock x:Name="statusText" Text="Please be patient!" FontSize="14" Style="{StaticResource BaseTextBlockStyle}" Opacity="0.65" />
+                    <TextBlock x:Name="usernameText" Text="Loading your data..." Style="{StaticResource BaseTextBlockStyle}" TextWrapping="WrapWholeWords" />
+                    <TextBlock x:Name="statusText" Text="Please be patient!" FontSize="14" Style="{StaticResource BaseTextBlockStyle}" Opacity="0.65" TextWrapping="WrapWholeWords" />
                 </StackPanel>
             </StackPanel>
             <StackPanel Grid.Column="1" x:Name="CBarButtons" Orientation="Horizontal" HorizontalAlignment="Right">
