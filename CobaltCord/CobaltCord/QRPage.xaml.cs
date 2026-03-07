@@ -11,16 +11,13 @@ using System.Threading.Tasks;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
-using Windows.Web.Http;
 using CobaltCord.Networking;
 using CobaltCord.Classes;
 using System.Collections.Generic;
 using System.Text;
 using ZXing;
 using ZXing.QrCode;
-using ZXing.Common;
 using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Graphics.Imaging;
 
 namespace CobaltCord
 {

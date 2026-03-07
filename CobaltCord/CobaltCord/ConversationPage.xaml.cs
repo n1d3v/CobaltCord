@@ -36,7 +36,6 @@ namespace CobaltCord
         private async Task LoadMessages()
         {
             string msgContent = await api.SendAPI($"channels/{channelId}/messages?limit={MAX_MESSAGES_LIMIT}", HttpMethod.Get, dscToken, null, null, null, null);
-
             var parsedMsgContent = JArray.Parse(msgContent);
 
             // Keep track of the current values
@@ -106,6 +105,14 @@ namespace CobaltCord
         private void backButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             Frame.Navigate(typeof(ClientPage));
+        }
+
+        private async void sendButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            var chatPayload = new { content = messageBox.Text, flags = 0, mobile_network_type = "unknown", tts = false };
+            await api.SendAPI($"channels/{channelId}/messages", HttpMethod.Post, dscToken, chatPayload, null, null, null);
+
+            messageBox.Text = string.Empty;
         }
 
         // Fixes the bug with a transparent background where the text does not appear
