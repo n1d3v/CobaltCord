@@ -20,7 +20,7 @@ namespace CobaltCord
         private string channelId;
 
         internal static readonly API api = API.Instance;
-        private WebSocket _webSocket;
+        // private WebSocket _webSocket;
         private string dscToken;
 
         private const int MAX_MESSAGES_LIMIT = 30;
@@ -113,6 +113,11 @@ namespace CobaltCord
             await api.SendAPI($"channels/{channelId}/messages", HttpMethod.Post, dscToken, chatPayload, null, null, null);
 
             messageBox.Text = string.Empty;
+        }
+
+        private void callPersonButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(CallPage), new HelperClasses.CallNavData { ChannelId = channelId });
         }
 
         // Fixes the bug with a transparent background where the text does not appear

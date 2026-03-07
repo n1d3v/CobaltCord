@@ -8,6 +8,8 @@ using CobaltCord.Classes;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
+using ICSharpCode.SharpZipLib.Zip.Compression;
+using System.IO;
 
 namespace CobaltCord.Networking
 {
@@ -21,8 +23,12 @@ namespace CobaltCord.Networking
         private WebSocketStreamerClient _client;
         private WebSocketStreamerSend _sender;
 
+        // SharpZipLib properties
+        private Inflater _inflater = new Inflater();
+        private MemoryStream _inflateBuffer = new MemoryStream();
+
         // Discord WS properties
-        private string gatewayUrl = "wss://gateway.discord.gg/?v=9&encoding=json";
+        private string gatewayUrl = "wss://gateway.discord.gg/?v=9&encoding=json&compress=zlib-stream";
         private string dscToken;
 
         // WebSocket properties
@@ -46,7 +52,7 @@ namespace CobaltCord.Networking
             try
             {
                 _client = new WebSocketStreamerClient(gatewayUrl);
-                _client.MessageReceived += HandleMessage;
+                _client.BinaryMessageReceived += HandleMessage;
 
                 await _client.Connect();
                 _sender = new WebSocketStreamerSend(_client.Socket);
@@ -123,60 +129,94 @@ namespace CobaltCord.Networking
             ReadyReceived?.Invoke(this, EventArgs.Empty);
         }
 
-        private async void HandleMessage(string data)
+        private async void HandleMessage(byte[] data)
         {
             try
             {
-                var json = JsonConvert.DeserializeObject<JObject>(data);
-                string opCode = json["op"] != null ? (string)json["op"] : "";
+                _inflateBuffer.Write(data, 0, data.Length);
+                byte[] bufferArray = _inflateBuffer.ToArray();
 
-                switch (opCode)
+                if (!EndsWithFlushSuffix(bufferArray))
+                    return;
+
+                _inflater.SetInput(bufferArray);
+                using (var output = new MemoryStream())
                 {
-                    case "0":
-                        string eventType = json["t"] != null ? (string)json["t"] : "";
-                        switch (eventType)
-                        {
-                            case "READY":
-                                string wsJsonEvt = json["d"].ToString(Formatting.None);
-                                recipientsData = (JArray)(json["d"]["relationships"] ?? new JArray());
-                                privateChannelsData = (JArray)(json["d"]["private_channels"] ?? new JArray());
-                                // Only uncomment if you need to look at the READY event data as this is a large payload.
-                                // Debug.WriteLine(json["d"] != null ? wsJsonEvt : "null");
+                    byte[] buf = new byte[4096];
+                    int read;
+                    while ((read = _inflater.Inflate(buf)) > 0)
+                        output.Write(buf, 0, read);
 
-                                await HandleReadyEvt(wsJsonEvt);
-                                break;
-                            default:
-                                // Only uncomment if you want to debug an event from Discord, this is a mess in the console.
-                                // Debug.WriteLine($"[WS] Unhandled event: {eventType}, data: {json["d"]?.ToString(Formatting.None)}");
-                                break;
-                        }
-                        break;
+                    byte[] decompressed = output.ToArray();
+                    string jsonString = System.Text.Encoding.UTF8.GetString(decompressed, 0, decompressed.Length);
 
-                    case "10": // Hello from Discord, meaning we're connected.
-                        Debug.WriteLine("Discord said hello to us, hello Discord!");
-                        heartbeatInterval = json["d"]?["heartbeat_interval"] != null
-                                            ? (int)json["d"]["heartbeat_interval"]
-                                            : 0;
-
-                        await SendIdentify();
-                        Task.Run(() => SendHeartbeat());
-                        break;
-
-                    case "11": // Heartbeat ack from Discord
-                        Debug.WriteLine("Heartbeat was acknowledged by Discord.");
-                        break;
-
-                    default:
-                        Debug.WriteLine($"Unknown op code: {opCode}, data: {data}");
-                        break;
+                    _inflateBuffer.SetLength(0);
+                    await HandleMessageData(jsonString);
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error processing message: {ex.Message}");
+                Debug.WriteLine($"Error decoding zlib message: {ex}");
+                _inflateBuffer.SetLength(0);
             }
         }
 
+        private async Task HandleMessageData(string data)
+        {
+            var json = JsonConvert.DeserializeObject<JObject>(data);
+            int opCode = json["op"] != null ? (int)json["op"] : -1;
+
+            switch (opCode)
+            {
+                case 0:
+                    string eventType = json["t"] != null ? (string)json["t"] : "";
+                    switch (eventType)
+                    {
+                        case "READY":
+                            string wsJsonEvt = json["d"].ToString(Formatting.None);
+                            recipientsData = (JArray)(json["d"]["relationships"] ?? new JArray());
+                            privateChannelsData = (JArray)(json["d"]["private_channels"] ?? new JArray());
+                            // Only uncomment if you need to look at the READY event data as this is a large payload.
+                            // Debug.WriteLine(json["d"] != null ? wsJsonEvt : "null");
+
+                            await HandleReadyEvt(wsJsonEvt);
+                            break;
+                        default:
+                            // Only uncomment if you want to debug an event from Discord, this is a mess in the console.
+                            // Debug.WriteLine($"[WS] Unhandled event: {eventType}, data: {json["d"]?.ToString(Formatting.None)}");
+                            break;
+                    }
+                    break;
+
+                case 10: // Hello from Discord, meaning we're connected.
+                    Debug.WriteLine("Discord said hello to us, hello Discord!");
+                    heartbeatInterval = json["d"]?["heartbeat_interval"] != null
+                                        ? (int)json["d"]["heartbeat_interval"]
+                                        : 0;
+
+                    await SendIdentify();
+                    Task.Run(() => SendHeartbeat());
+                    break;
+
+                case 11: // Heartbeat ack from Discord
+                    Debug.WriteLine("Heartbeat was acknowledged by Discord.");
+                    break;
+
+                default:
+                    Debug.WriteLine($"Unknown op code: {opCode}, data: {data}");
+                    break;
+            }
+        }
+
+        // This is Discord's flush when using zlib-stream
+        private bool EndsWithFlushSuffix(byte[] data)
+        {
+            if (data.Length < 4) return false;
+            return data[data.Length - 4] == 0x00 &&
+                   data[data.Length - 3] == 0x00 &&
+                   data[data.Length - 2] == 0xFF &&
+                   data[data.Length - 1] == 0xFF;
+        }
 
         public IEnumerable<JObject> GetUserChannels(bool orderByRecent)
         {

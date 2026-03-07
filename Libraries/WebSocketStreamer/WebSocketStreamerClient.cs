@@ -11,6 +11,7 @@ namespace WebSocketStreamer
         public MessageWebSocket Socket => _socket;
 
         public event Action<string> MessageReceived;
+        public event Action<byte[]> BinaryMessageReceived;
         public event Action<ushort, string> Closed;
         public event Action<Exception> Error;
 
@@ -24,15 +25,24 @@ namespace WebSocketStreamer
         {
             _url = url;
             _socket = new MessageWebSocket();
-            _socket.Control.MessageType = SocketMessageType.Utf8;
+            _socket.Control.MessageType = SocketMessageType.Binary;
 
             _socket.MessageReceived += (sender, args) =>
             {
                 var reader = args.GetDataReader();
-                reader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
 
-                var message = reader.ReadString(reader.UnconsumedBufferLength);
-                MessageReceived?.Invoke(message);
+                if (sender.Control.MessageType == SocketMessageType.Utf8)
+                {
+                    reader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
+                    var message = reader.ReadString(reader.UnconsumedBufferLength);
+                    MessageReceived?.Invoke(message);
+                }
+                else
+                {
+                    byte[] data = new byte[reader.UnconsumedBufferLength];
+                    reader.ReadBytes(data);
+                    BinaryMessageReceived?.Invoke(data);
+                }
             };
 
             _socket.Closed += (sender, args) =>

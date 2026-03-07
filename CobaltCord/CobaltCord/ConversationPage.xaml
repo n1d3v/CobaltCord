@@ -28,6 +28,7 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" x:Name="buttonPanel" Orientation="Horizontal">
+                <AppBarButton x:Name="callPersonButton" Icon="Phone" Margin="0,0,-21,0" Click="callPersonButton_Click" />
                 <AppBarButton Icon="ContactInfo" Margin="0,0,-21,0" />
             </StackPanel>
         </Grid>

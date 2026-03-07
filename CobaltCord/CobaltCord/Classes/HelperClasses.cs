@@ -21,5 +21,10 @@
             public string CombinedId { get; set; }
             public string DisplayName { get; set; }
         }
+
+        public class CallNavData
+        {
+            public string ChannelId { get; set; }
+        }
     }
 }
