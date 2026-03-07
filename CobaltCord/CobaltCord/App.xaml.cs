@@ -16,6 +16,9 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
+using Windows.System;
+using System.Diagnostics;
+using System.Threading;
 
 // The Pivot Application template is documented at http://go.microsoft.com/fwlink/?LinkID=391641
 
@@ -27,6 +30,28 @@ namespace CobaltCord
     public sealed partial class App : Application
     {
         private TransitionCollection transitions;
+
+        /// <summary>
+        /// Provides a memory debugger, of course if the app is in debug mode.
+        /// This allows us to see if CobaltCord is being overloaded with shit or not.
+        /// </summary>
+        private Timer _memoryTimer;
+        private void StartMemoryDebugging()
+        {
+            _memoryTimer = new Timer(LogMemoryUsage, null, 0, 5000);
+        }
+
+        private void LogMemoryUsage(object state)
+        {
+            ulong appMemory = MemoryManager.AppMemoryUsage;
+            ulong appMemoryLimit = MemoryManager.AppMemoryUsageLimit;
+            double usedMB = appMemory / 1024.0 / 1024.0;
+            double limitMB = appMemoryLimit / 1024.0 / 1024.0;
+            double percentage = (double)appMemory / appMemoryLimit * 100.0;
+
+            Debug.WriteLine($"[Memory] The amount used by the app: {usedMB:F2} MB / {limitMB:F2} MB ({percentage:F1}%)");
+            Debug.WriteLine($"[Memory] Memory level reported by Windows: {MemoryManager.AppMemoryUsageLevel}");
+        }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -112,6 +137,10 @@ namespace CobaltCord
                     throw new Exception("Failed to create initial page");
                 }
             }
+
+#if DEBUG
+            StartMemoryDebugging();
+#endif
 
             // Ensure the current window is active.
             Window.Current.Activate();
