@@ -8,6 +8,9 @@ namespace CobaltCord.Calling
 {
     class RelayREST
     {
+        public string relayIp = "http://127.0.0.1";
+        public int relayPort = 5000;
+
         public async Task AuthenticateCall(string dscToken, string channelId, string clientVer = null, string clientCN = null)
         {
             // Authenticate with the relay server to do the heavy-lifting for us
@@ -18,7 +21,7 @@ namespace CobaltCord.Calling
                 ClientVersion = clientVer,
                 ClientCodename = clientCN
             };
-            string response = await RelayHelper.PostReq("https://your-relay-server/authenticate", payload);
+            string authResponse = await RelayHelper.PostReq($"{relayIp}:{relayPort}/rest/authenticate", payload);
 
             // Let's now actually connect to the call on our relay
             await RingConversation();
@@ -26,7 +29,7 @@ namespace CobaltCord.Calling
 
         public async Task RingConversation()
         {
-
+            string ringResponse = await RelayHelper.PostReq($"{relayIp}:{relayPort}/rest/ring", null);
         }
     }
 
