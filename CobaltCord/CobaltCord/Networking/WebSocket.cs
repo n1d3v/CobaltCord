@@ -22,7 +22,6 @@ namespace CobaltCord.Networking
         // WebSocketStreamer properties
         private WebSocketStreamerClient _client;
         private WebSocketStreamerSend _sender;
-        public WebSocketStreamerSend Sender => _sender;
 
         // SharpZipLib properties
         private Inflater _inflater = new Inflater();
@@ -36,12 +35,7 @@ namespace CobaltCord.Networking
         private bool _isConnected = false;
         private int heartbeatInterval;
 
-        // Voice data properties
-        public string voiceToken;
-        public string voiceEndpoint;
-
         // WebSocket events
-        public event EventHandler VoiceReady;
         public event EventHandler ReadyReceived;
 
         // Channel data
@@ -128,24 +122,6 @@ namespace CobaltCord.Networking
             }
         }
 
-        private void HandleVoiceServerUpdate(JToken data)
-        {
-            try
-            {
-                voiceToken = data["token"]?.ToString();
-                voiceEndpoint = data["endpoint"]?.ToString();
-
-                Debug.WriteLine($"Voice token: {voiceToken}");
-                Debug.WriteLine($"Voice WSS endpoint: {voiceEndpoint}");
-
-                VoiceReady?.Invoke(this, EventArgs.Empty);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error handling VOICE_SERVER_UPDATE: {ex}");
-            }
-        }
-
         private async Task HandleReadyEvt(string data)
         {
             var parsedReady = JObject.Parse(data);
@@ -208,12 +184,6 @@ namespace CobaltCord.Networking
                         default:
                             // Only uncomment if you want to debug an event from Discord, this is a mess in the console.
                             // Debug.WriteLine($"[WS] Unhandled event: {eventType}, data: {json["d"]?.ToString(Formatting.None)}");
-                            break;
-                        case "VOICE_STATE_UPDATE":
-                            Debug.WriteLine("Discord sent the state of calling, will handle later!");
-                            break;
-                        case "VOICE_SERVER_UPDATE":
-                            HandleVoiceServerUpdate(json["d"]);
                             break;
                     }
                     break;

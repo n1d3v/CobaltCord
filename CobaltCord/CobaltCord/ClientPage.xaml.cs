@@ -309,19 +309,23 @@ namespace CobaltCord
             {
                 if (info.GetResults() == ContentDialogResult.Primary)
                 {
-                    SettingsMgr.CachingWarning = false;
-                    SettingsMgr.FinishedWelcome = false;
-                    SettingsMgr.DiscordDPN = string.Empty;
-                    SettingsMgr.DiscordSTS = string.Empty;
-                    SettingsMgr.DiscordTkn = string.Empty;
-                    SettingsMgr.DiscordUID = string.Empty;
-                    Application.Current.Exit();
+                    // Continue along with the clearing of the data
                 }
                 else if (info.GetResults() == ContentDialogResult.Secondary)
                 {
                     return;
                 }
             };
+
+            SettingsMgr.CachingWarning = false;
+            SettingsMgr.FinishedWelcome = false;
+            SettingsMgr.DiscordDPN = string.Empty;
+            SettingsMgr.DiscordSTS = string.Empty;
+            SettingsMgr.DiscordTkn = string.Empty;
+            SettingsMgr.DiscordUID = string.Empty;
+
+            // Exits the application
+            Application.Current.Exit();
         }
 
         private void ShowProgressIndicator(bool isVisible, string text = "")
