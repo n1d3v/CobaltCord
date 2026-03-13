@@ -32,12 +32,6 @@ namespace CobaltCord
             this.InitializeComponent();
         }
 
-        private async Task RingConversation()
-        {
-            var ringPayload = new { recipients = (string[])null };
-            await api.SendAPI($"channels/{channelId}/call/ring", HttpMethod.Post, dscToken, ringPayload, null, null, null);
-        }
-
         protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -51,7 +45,7 @@ namespace CobaltCord
 
                 try
                 {
-                    await RingConversation();
+                    // await RingConversation();
                 }
                 catch (Exception ex)
                 {
