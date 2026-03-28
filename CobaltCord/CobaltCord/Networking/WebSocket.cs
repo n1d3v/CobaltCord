@@ -25,7 +25,7 @@ namespace CobaltCord.Networking
 
         // SharpZipLib properties
         private Inflater _inflater = new Inflater();
-        private MemoryStream _inflateBuffer = new MemoryStream();
+        private MemoryStream _decompressedBuffer = new MemoryStream();
 
         // Discord WS properties
         private string gatewayUrl = "wss://gateway.discord.gg/?v=9&encoding=json&compress=zlib-stream";
@@ -133,31 +133,27 @@ namespace CobaltCord.Networking
         {
             try
             {
-                _inflateBuffer.Write(data, 0, data.Length);
-                byte[] bufferArray = _inflateBuffer.ToArray();
+                _inflater.SetInput(data);
 
-                if (!EndsWithFlushSuffix(bufferArray))
+                byte[] tempBuf = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = _inflater.Inflate(tempBuf)) > 0)
+                    _decompressedBuffer.Write(tempBuf, 0, bytesRead);
+
+                if (!EndsWithFlushSuffix(data))
                     return;
 
-                _inflater.SetInput(bufferArray);
-                using (var output = new MemoryStream())
-                {
-                    byte[] buf = new byte[4096];
-                    int read;
-                    while ((read = _inflater.Inflate(buf)) > 0)
-                        output.Write(buf, 0, read);
+                string jsonString = System.Text.Encoding.UTF8.GetString(
+                    _decompressedBuffer.ToArray(), 0, (int)_decompressedBuffer.Length);
 
-                    byte[] decompressed = output.ToArray();
-                    string jsonString = System.Text.Encoding.UTF8.GetString(decompressed, 0, decompressed.Length);
-
-                    _inflateBuffer.SetLength(0);
-                    await HandleMessageData(jsonString);
-                }
+                _decompressedBuffer.SetLength(0);
+                await HandleMessageData(jsonString);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error decoding zlib message: {ex}");
-                _inflateBuffer.SetLength(0);
+                Debug.WriteLine($"Error decoding zlib-stream message: {ex}");
+                _decompressedBuffer.SetLength(0);
+                _inflater = new Inflater();
             }
         }
 

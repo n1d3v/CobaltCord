@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -62,6 +64,9 @@ namespace CobaltCord.Networking
                 request.Content = new StringContent(jsonData, Encoding.UTF8, "application/json");
             }
 
+            // Discord prefers GZip for sending requests back to us, this is good for loading performance
+            // It is unlikely that Discord will use something else if GZip is specified, I haven't seen this anywhere though
+            request.Headers.TryAddWithoutValidation("Accept-Encoding", "gzip, deflate, br, zstd");
             request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
             request.Headers.TryAddWithoutValidation("X-Super-Properties", XSuperProperties);
 
@@ -71,10 +76,10 @@ namespace CobaltCord.Networking
 
                 if (response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadAsStringAsync();
+                    return await ReadResponse(response);
                 }
 
-                string errorResponse = await response.Content.ReadAsStringAsync();
+                string errorResponse = await ReadResponse(response);
                 Debug.WriteLine($"[DEBUG] Request failed: {response.StatusCode} - {errorResponse}");
             }
             catch (Exception ex)
@@ -84,6 +89,36 @@ namespace CobaltCord.Networking
             }
 
             return string.Empty;
+        }
+
+        private static async Task<string> ReadResponse(HttpResponseMessage response)
+        {
+            // Raw bytes from the request response
+            byte[] rawBytes = await response.Content.ReadAsByteArrayAsync();
+
+            IEnumerable<string> encodings;
+            bool hasContentEncoding = response.Content.Headers.TryGetValues("Content-Encoding", out encodings);
+
+            if (hasContentEncoding)
+            {
+                foreach (string encoding in encodings)
+                {
+                    // If it's GZip, then just decompress the GZip
+                    if (encoding.Equals("gzip", StringComparison.OrdinalIgnoreCase)) { return await DecompressGZip(rawBytes); }
+                }
+            }
+            return Encoding.UTF8.GetString(rawBytes, 0, rawBytes.Length);
+        }
+
+        private static async Task<string> DecompressGZip(byte[] compressedData)
+        {
+            using (var compressedStream = new MemoryStream(compressedData))
+            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress))
+            using (var resultStream = new MemoryStream())
+            {
+                await gzipStream.CopyToAsync(resultStream);
+                return Encoding.UTF8.GetString(resultStream.ToArray(), 0, (int)resultStream.Length);
+            }
         }
     }
 }
