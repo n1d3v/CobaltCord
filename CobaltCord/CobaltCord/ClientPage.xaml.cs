@@ -1,25 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media.Imaging;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Net.Http;
 using CobaltCord.Networking;
 using CobaltCord.Classes;
-using CobaltCord.UserControls;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.ObjectModel;
 
@@ -30,6 +19,9 @@ namespace CobaltCord
         internal static readonly API api = API.Instance;
         private WebSocket _webSocket;
         private string dscToken;
+
+        // Required to not load data after coming back from a conversation
+        private bool hasLoaded = false;
 
         // Magic numbers used throughout the code for defining Discord stuff
         private const int DM_CHANNEL_TYPE = 1;
@@ -255,19 +247,27 @@ namespace CobaltCord
         {
             try
             {
-                ShowProgressIndicator(true, "Initializing WebSockets...");
-                await _webSocket.StartSocket();
+                if (hasLoaded)
+                {
+                    // Continue, don't do anything to the pre-existing data
+                }
+                else
+                {
+                    ShowProgressIndicator(true, "Initializing WebSockets...");
+                    await _webSocket.StartSocket();
 
-                ShowProgressIndicator(true, "Waiting for data to come through...\nThis may take a bit...");
-                await WaitForReadyEvt();
+                    ShowProgressIndicator(true, "Waiting for data to come through...\nThis may take a bit...");
+                    await WaitForReadyEvt();
 
-                ShowProgressIndicator(true, "Loading your user data...");
-                await InitializeUserInfo();
+                    ShowProgressIndicator(true, "Loading your user data...");
+                    await InitializeUserInfo();
 
-                ShowProgressIndicator(true, "Loading messages...");
-                await InitializePivotLists();
+                    ShowProgressIndicator(true, "Loading messages...");
+                    await InitializePivotLists();
 
-                ShowProgressIndicator(false, string.Empty);
+                    ShowProgressIndicator(false, string.Empty);
+                    hasLoaded = true;
+                }
             }
             catch (Exception ex)
             {
@@ -341,12 +341,5 @@ namespace CobaltCord
         {
             ClearUserData();
         }
-
-        /* 
-            protected override void OnNavigatedTo(NavigationEventArgs e)
-            {
-
-            } 
-        */
     }
 }

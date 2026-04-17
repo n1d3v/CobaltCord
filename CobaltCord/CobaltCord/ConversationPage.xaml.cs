@@ -8,10 +8,9 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using CobaltCord.Classes;
 using CobaltCord.Networking;
-using CobaltCord.UserControls;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace CobaltCord
 {
@@ -38,42 +37,53 @@ namespace CobaltCord
             string msgContent = await api.SendAPI($"channels/{channelId}/messages?limit={MAX_MESSAGES_LIMIT}", HttpMethod.Get, dscToken, null, null, null, null);
             var parsedMsgContent = JArray.Parse(msgContent);
 
-            // Keep track of the current values
-            string lastMessageText = null;
-            string lastMessageTime = null;
-
             for (int i = parsedMsgContent.Count - 1; i >= 0; i--)
+                AddMessage(parsedMsgContent[i]);
+
+            if (MessagesData.Count > 0)
             {
-                var message = parsedMsgContent[i];
-
-                string messageText = message["content"].Value<string>();
-                string messageTimestamp = message["timestamp"].Value<string>();
-                string messageId = message["id"].Value<string>();
-                string messageAuthorHash = message["author"]["avatar"].Value<string>();
-                string messageAuthor = message["author"]["global_name"].Value<string>();
-                string messageAuthorId = message["author"]["id"].Value<string>();
-                string formattedTime = DateTimeOffset.Parse(messageTimestamp).ToLocalTime().ToString("hh:mm tt");
-
-                MessagesData.Add(new ListMsgItem
-                {
-                    AuthorName = messageAuthor,
-                    AuthorId = messageAuthorId,
-                    AuthorHash = messageAuthorHash,
-                    MessageId = messageId,
-                    MessageText = messageText,
-                    MessageTime = formattedTime
-                });
-
-                lastMessageText = $"{messageAuthor}: {messageText}";
-                lastMessageTime = formattedTime;
-            }
-
-            if (!string.IsNullOrEmpty(lastMessageText))
-            {
+                var last = MessagesData.Last();
                 MessageCache.ClearAll(channelId);
-                MessageCache.SetLastMessage(channelId, lastMessageText);
-                MessageCache.SetLastTime(channelId, lastMessageTime);
+                MessageCache.SetLastMessage(channelId, $"{last.AuthorName}: {last.MessageText}");
+                MessageCache.SetLastTime(channelId, last.MessageTime);
             }
+
+            ScrollToBottom();
+        }
+
+        private void AddMessage(JToken messageData)
+        {
+            string messageText = messageData["content"].Value<string>();
+            string messageTimestamp = messageData["timestamp"].Value<string>();
+            string messageId = messageData["id"].Value<string>();
+            string messageAuthorHash = messageData["author"]["avatar"]?.Value<string>();
+            string messageAuthor = messageData["author"]["global_name"]?.Value<string>()
+                                   ?? messageData["author"]["username"].Value<string>();
+            string messageAuthorId = messageData["author"]["id"].Value<string>();
+            string formattedTime = DateTimeOffset.Parse(messageTimestamp).ToLocalTime().ToString("hh:mm tt");
+
+            bool isContinuation = MessagesData.Count > 0 &&
+                                  MessagesData.Last().AuthorId == messageAuthorId;
+
+            if (!isContinuation && MessagesData.Count > 0 && MessagesData.Last().IsContinuation)
+                MessagesData.Last().IsLastContinuation = true;
+
+            MessagesData.Add(new ListMsgItem
+            {
+                AuthorName = messageAuthor,
+                AuthorId = messageAuthorId,
+                AuthorHash = messageAuthorHash,
+                MessageId = messageId,
+                MessageText = messageText,
+                MessageTime = formattedTime,
+                IsContinuation = isContinuation
+            });
+        }
+
+        private void ScrollToBottom()
+        {
+            if (MessagesData.Count > 0)
+                MessagesList.ScrollIntoView(MessagesData.Last());
         }
 
         protected async override void OnNavigatedTo(NavigationEventArgs e)
@@ -109,10 +119,21 @@ namespace CobaltCord
 
         private async void sendButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            var chatPayload = new { content = messageBox.Text, flags = 0, mobile_network_type = "unknown", tts = false };
-            await api.SendAPI($"channels/{channelId}/messages", HttpMethod.Post, dscToken, chatPayload, null, null, null);
+            // Fixes a bug where it doesn't actually send a message, because it hasn't finished typing.
+            this.Focus(Windows.UI.Xaml.FocusState.Programmatic);
+
+            string msgText = messageBox.Text;
+            if (string.IsNullOrWhiteSpace(msgText)) return;
 
             messageBox.Text = string.Empty;
+
+            var chatPayload = new { content = msgText, flags = 0, mobile_network_type = "unknown", tts = false };
+            string chatResponse = await api.SendAPI($"channels/{channelId}/messages", HttpMethod.Post, dscToken, chatPayload, null, null, null);
+
+            var parsedData = JObject.Parse(chatResponse);
+            AddMessage(parsedData);
+
+            MessagesList.ScrollIntoView(MessagesData.Last());
         }
 
         private void callPersonButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)

@@ -11,7 +11,7 @@
     d:DesignHeight="68"
     d:DesignWidth="400">
 
-    <Grid>
+    <Grid Margin="0,15,0,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
@@ -46,13 +46,12 @@
                         Style="{StaticResource BaseTextBlockStyle}" />
                 </Grid>
                 <TextBlock 
-                   Text="{Binding MessageText, ElementName=root}"
-                   Foreground="White"
-                   TextWrapping="Wrap"
-                   LineHeight="25"
-                   FontSize="20"
-                   Style="{StaticResource BaseTextBlockStyle}" />
-            </StackPanel>
+                    Text="{Binding MessageText, ElementName=root}"
+                    Foreground="White"
+                    TextWrapping="Wrap"
+                    LineHeight="25"
+                    FontSize="20"
+                    Style="{StaticResource BaseTextBlockStyle}" />            </StackPanel>
         </Grid>
     </Grid>
 </UserControl>

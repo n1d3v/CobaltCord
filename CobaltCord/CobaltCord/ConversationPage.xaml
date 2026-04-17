@@ -5,10 +5,35 @@
     xmlns:local="using:CobaltCord"
     xmlns:uc="using:CobaltCord.UserControls"
     xmlns:convs="using:CobaltCord.Converters"
+    xmlns:classes="using:CobaltCord.Classes"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <classes:MessageTemplateSelector x:Key="MessageSelector">
+            <classes:MessageTemplateSelector.SenderMsgTemplate>
+                <DataTemplate>
+                    <uc:SenderMsgItem
+                        AuthorName="{Binding AuthorName}"
+                        AuthorHash="{Binding AuthorHash}"
+                        AuthorId="{Binding AuthorId}"
+                        MessageId="{Binding MessageId}"
+                        MessageTime="{Binding MessageTime}"
+                        MessageText="{Binding MessageText}" />
+                </DataTemplate>
+            </classes:MessageTemplateSelector.SenderMsgTemplate>
+            <classes:MessageTemplateSelector.SenderPreviousTemplate>
+                <DataTemplate>
+                    <uc:SenderPreviousItem
+                        MessageId="{Binding MessageId}"
+                        MessageText="{Binding MessageText}"
+                        IsLastContinuation="{Binding IsLastContinuation}" />
+                </DataTemplate>
+            </classes:MessageTemplateSelector.SenderPreviousTemplate>
+        </classes:MessageTemplateSelector>
+    </Page.Resources>
 
     <Grid Margin="20,10">
         <Grid.RowDefinitions>
@@ -33,26 +58,27 @@
             </StackPanel>
         </Grid>
         <Grid Grid.Row="1">
-            <ListView ItemsSource="{Binding MessagesData}" Background="Transparent" SelectionMode="None">
+            <ListView x:Name="MessagesList"
+                      ItemsSource="{Binding MessagesData}"
+                      ItemTemplateSelector="{StaticResource MessageSelector}"
+                      Background="Transparent"
+                      SelectionMode="None">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="Padding" Value="0"/>
-                        <Setter Property="Margin" Value="0,6.5"/>
+                        <Setter Property="Margin" Value="0"/>
+                        <Setter Property="MinHeight" Value="0"/>
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                         <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListViewItem">
+                                    <ContentPresenter />
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
                 </ListView.ItemContainerStyle>
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <uc:SenderMsgItem
-                                AuthorName="{Binding AuthorName}"
-                                AuthorHash="{Binding AuthorHash}"
-                                AuthorId="{Binding AuthorId}"
-                                MessageId="{Binding MessageId}"
-                                MessageTime="{Binding MessageTime}"
-                                MessageText="{Binding MessageText}" />
-                    </DataTemplate>
-                </ListView.ItemTemplate>
             </ListView>
         </Grid>
         <Grid Grid.Row="2" VerticalAlignment="Top">

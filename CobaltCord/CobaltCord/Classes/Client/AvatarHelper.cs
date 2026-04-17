@@ -5,6 +5,7 @@ using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
+using System.IO;
 using System.Diagnostics;
 
 namespace CobaltCord.Classes
@@ -12,6 +13,9 @@ namespace CobaltCord.Classes
     public static class AvatarHelper
     {
         private static readonly string AvatarFolderName = "Avatars";
+
+        // Reuse a httpClient instance instead of calling a new one each time
+        private static readonly HttpClient _httpClient = new HttpClient();
 
         public static async Task SetAvatarFromHash(Image targetImage, string uid, string hash, string imageUrl)
         {
@@ -32,11 +36,10 @@ namespace CobaltCord.Classes
             {
                 avatarFile = await avatarFolder.GetFileAsync(fileName);
             }
-            catch
+            catch (FileNotFoundException)
             {
                 avatarFile = null; // File doesn't exist, we'll handle it later
             }
-
             if (avatarFile != null)
             {
                 // Open the cached avatar image safely
@@ -70,29 +73,35 @@ namespace CobaltCord.Classes
 
             try
             {
-                using (HttpClient client = new HttpClient())
+                byte[] bytes = await _httpClient.GetByteArrayAsync(url);
+
+                // Create or replace the target file directly
+                // Check if another concurrent call already wrote the file first
+                StorageFile file;
+                try
                 {
-                    byte[] bytes = await client.GetByteArrayAsync(url);
-
-                    // Create or replace the target file directly
-                    StorageFile file = await folder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+                    file = await folder.GetFileAsync(fileName);
+                }
+                catch
+                {
+                    file = await folder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
                     await FileIO.WriteBytesAsync(file, bytes);
+                }
 
-                    // Load image into Image control
-                    using (var stream = new InMemoryRandomAccessStream())
+                // Load image into Image control
+                using (var stream = new InMemoryRandomAccessStream())
+                {
+                    using (var writer = new DataWriter(stream))
                     {
-                        using (var writer = new DataWriter(stream))
-                        {
-                            writer.WriteBytes(bytes);
-                            await writer.StoreAsync();
-                            writer.DetachStream();
-                        }
-
-                        stream.Seek(0);
-                        BitmapImage bitmap = new BitmapImage();
-                        await bitmap.SetSourceAsync(stream);
-                        targetImage.Source = bitmap;
+                        writer.WriteBytes(bytes);
+                        await writer.StoreAsync();
+                        writer.DetachStream();
                     }
+
+                    stream.Seek(0);
+                    BitmapImage bitmap = new BitmapImage();
+                    await bitmap.SetSourceAsync(stream);
+                    targetImage.Source = bitmap;
                 }
             }
             catch (Exception ex)

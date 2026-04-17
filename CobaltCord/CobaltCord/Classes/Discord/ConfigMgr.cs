@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
+using Windows.System.UserProfile;
+using System.Diagnostics;
 
 namespace CobaltCord.Classes
 {
@@ -16,7 +18,7 @@ namespace CobaltCord.Classes
         public string OperatingSystem { get; set; } = "Windows";
         public string BrowserName { get; set; } = "Firefox";
         public string DeviceName { get; set; } = string.Empty; // Discord leaves this empty for some reason?
-        public string SystemLocale { get; set; } = "en-US"; // Leave it as en-US for now, later we will make it dynamic.
+        public string SystemLocale { get; set; } = GlobalizationPreferences.Languages[0];
         public string OSVersion { get; set; } = "10";
 
         // Discord related options
@@ -26,7 +28,7 @@ namespace CobaltCord.Classes
         public string DCReferringCurrent { get; set; } = "https://discord.com/";
         public string DCReferringCurrentDomain { get; set; } = "discord.com";
         public string DCReleaseChannel { get; set; } = "canary";
-        public int DCClientBuild { get; set; } = 507104; // Latest build as of 7/3/26 (We made it to 500000 builds!)
+        public int DCClientBuild { get; set; } = 529845; // Latest build as of 17/4/26 (We made it to 500000 builds!)
         public string DCClientEvtSrc { get; set; } = null;
         public string DCClientState { get; set; } = "unfocused";
 

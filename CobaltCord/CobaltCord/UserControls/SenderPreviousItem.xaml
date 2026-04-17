@@ -1,0 +1,22 @@
+﻿<UserControl
+    x:Class="CobaltCord.UserControls.SenderPreviousItem"
+    x:Name="root"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CobaltCord.UserControls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="40"
+    d:DesignWidth="400">
+
+    <TextBlock
+        x:Name="MessageTextBlock"
+        Text="{Binding MessageText, ElementName=root}"
+        Foreground="White"
+        TextWrapping="Wrap"
+        LineHeight="25"
+        FontSize="20"
+        Margin="65,1.5,0,1.5"
+        Style="{StaticResource BaseTextBlockStyle}" />
+</UserControl>
