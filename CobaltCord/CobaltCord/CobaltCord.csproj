@@ -88,14 +88,16 @@
     <Compile Include="CallPage.xaml.cs">
       <DependentUpon>CallPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Classes\AvatarHelper.cs" />
-    <Compile Include="Classes\ConfigMgr.cs" />
+    <Compile Include="Classes\Client\AvatarHelper.cs" />
+    <Compile Include="Classes\Discord\ConfigMgr.cs" />
     <Compile Include="Classes\HelperClasses.cs" />
     <Compile Include="Classes\HelperMethods.cs" />
-    <Compile Include="Classes\ListMsgItem.cs" />
-    <Compile Include="Classes\MessageCache.cs" />
-    <Compile Include="Classes\SettingsMgr.cs" />
-    <Compile Include="Classes\UserStatusMgr.cs" />
+    <Compile Include="Classes\Definitions\ListMsgItem.cs" />
+    <Compile Include="Classes\Definitions\ListPreviousItem.cs" />
+    <Compile Include="Classes\Client\MessageCache.cs" />
+    <Compile Include="Classes\Client\MessageTemplateSelector.cs" />
+    <Compile Include="Classes\Client\SettingsMgr.cs" />
+    <Compile Include="Classes\Discord\UserStatusMgr.cs" />
     <Compile Include="ClientPage.xaml.cs">
       <DependentUpon>ClientPage.xaml</DependentUpon>
     </Compile>
@@ -118,6 +120,9 @@
     <Compile Include="QRPage.xaml.cs">
       <DependentUpon>QRPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SettingsMainPage.xaml.cs">
+      <DependentUpon>SettingsMainPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="StallPage.xaml.cs">
       <DependentUpon>StallPage.xaml</DependentUpon>
     </Compile>
@@ -126,6 +131,9 @@
     </Compile>
     <Compile Include="UserControls\SenderMsgItem.xaml.cs">
       <DependentUpon>SenderMsgItem.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\SenderPreviousItem.xaml.cs">
+      <DependentUpon>SenderPreviousItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="WelcomePage.xaml.cs">
       <DependentUpon>WelcomePage.xaml</DependentUpon>
@@ -180,6 +188,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="SettingsMainPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="StallPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -189,6 +201,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UserControls\SenderMsgItem.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\SenderPreviousItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -220,10 +236,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\ListItem.cs" />
+    <Compile Include="Classes\Definitions\ListItem.cs" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="SettingsPages\" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
     <VisualStudioVersion>12.0</VisualStudioVersion>
   </PropertyGroup>
